@@ -73,22 +73,31 @@ public class ComputationalGraph {
         return list;
     }
 
-    private void clear() {
-        for (ComputationalNode node : nodeMap.keySet()) {
-            if (!node.isLearnable()) {
-                node.setValue(null);
-            }
-            node.setBackward(null);
+    private void clear(HashSet<ComputationalNode> visited, ComputationalNode node) {
+        visited.add(node);
+        if (!node.isLearnable()) {
+            node.setValue(null);
+        }
+        node.setBackward(null);
+        if (nodeMap.containsKey(node)) {
             for (ComputationalNode child : nodeMap.get(node)) {
-                if (!node.isLearnable()) {
-                    child.setValue(null);
+                if (!visited.contains(child)) {
+                    clear(visited, child);
                 }
-                child.setBackward(null);
             }
         }
     }
 
-    private void update(HashSet<ComputationalNode> visited, ComputationalNode node) throws MatrixDimensionMismatch {
+    private void clear() {
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        for (ComputationalNode node : nodeMap.keySet()) {
+            if (!visited.contains(node)) {
+                clear(visited, node);
+            }
+        }
+    }
+
+    private void update(HashSet<ComputationalNode> visited, ComputationalNode node) {
         visited.add(node);
         if (node.isLearnable()) {
             node.updateValue();
@@ -102,7 +111,7 @@ public class ComputationalGraph {
         }
     }
 
-    private void updateValues() throws MatrixDimensionMismatch {
+    private void updateValues() {
         HashSet<ComputationalNode> visited = new HashSet<>();
         for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
@@ -136,7 +145,10 @@ public class ComputationalGraph {
             switch (child.getOperator()) {
                 case '*':
                     if (left.equals(node)) {
-                        return child.getBackward().multiply(right.getValue().transpose());
+                        if (nodeMap.get(child).size() == 1 && !nodeMap.containsKey(nodeMap.get(child).get(0))) {
+                            return child.getBackward().multiply(right.getValue().transpose());
+                        }
+                        return child.getBackward().partial(0, child.getBackward().getRow() - 1, 0, child.getBackward().getColumn() - 2).multiply(right.getValue().transpose());
                     }
                     return left.getValue().transpose().multiply(child.getBackward());
                 case '+':
@@ -190,6 +202,23 @@ public class ComputationalGraph {
         clear();
     }
 
+    private void getBiased(ComputationalNode first) {
+        Matrix biasedValue = new Matrix(first.getValue().getRow(), first.getValue().getColumn() + 1);
+        for (int i = 0; i < first.getValue().getRow(); i++) {
+            for (int j = 0; j < first.getValue().getColumn(); j++) {
+                biasedValue.setValue(i, j, first.getValue().getValue(i, j));
+            }
+            biasedValue.setValue(i, first.getValue().getColumn(), 1.0);
+        }
+        first.setValue(biasedValue);
+    }
+
+    public ArrayList<Integer> predict() throws MatrixDimensionMismatch, MatrixRowColumnMismatch {
+        ArrayList<Integer> classLabels = forwardCalculation();
+        this.clear();
+        return classLabels;
+    }
+
     public ArrayList<Integer> forwardCalculation() throws MatrixRowColumnMismatch, MatrixDimensionMismatch {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         ComputationalNode output = sortedNodes.getFirst();
@@ -220,6 +249,9 @@ public class ComputationalGraph {
                                 break;
                         }
                     } else {
+                        if (child.getOperator() == '*' && !currentNode.isLearnable()) {
+                            getBiased(currentNode);
+                        }
                         child.setValue(currentNode.getValue().clone());
                     }
                 } else {
@@ -227,6 +259,9 @@ public class ComputationalGraph {
                         Matrix result;
                         switch (child.getOperator()) {
                             case '*':
+                                if (!currentNode.isLearnable()) {
+                                    getBiased(currentNode);
+                                }
                                 if (child.getValue().getColumn() == currentNode.getValue().getRow()) {
                                     child.setValue(child.getValue().multiply(currentNode.getValue()));
                                 } else {

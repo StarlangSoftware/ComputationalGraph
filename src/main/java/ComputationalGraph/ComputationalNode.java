@@ -49,8 +49,12 @@ public class ComputationalNode {
         this.value = value;
     }
 
-    protected void updateValue() throws MatrixDimensionMismatch {
-        value.add(backward);
+    protected void updateValue() {
+        for (int i = 0; i < value.getRow(); i++) {
+            for (int j = 0; j < value.getColumn(); j++) {
+                value.setValue(i, j, value.getValue(i, j) + backward.getValue(i, j));
+            }
+        }
     }
     protected boolean isLearnable() {
         return isLearnable;
