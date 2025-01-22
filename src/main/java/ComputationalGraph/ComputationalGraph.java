@@ -13,8 +13,8 @@ public class ComputationalGraph {
         this.reverseNodeMap = new HashMap<>();
     }
 
-    public ComputationalNode addEdge(ComputationalNode first, ComputationalNode second) {
-        ComputationalNode newNode = new ComputationalNode(false, second.getOperator());
+    public ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
+        ComputationalNode newNode = new ComputationalNode(false, second.getOperator(), isBiased);
         if (!nodeMap.containsKey(first)) {
             nodeMap.put(first, new ArrayList<>());
         }
@@ -31,8 +31,8 @@ public class ComputationalGraph {
         return newNode;
     }
 
-    public ComputationalNode addEdge(ComputationalNode node, FunctionType type) {
-        ComputationalNode newNode = new ComputationalNode(false, type);
+    public ComputationalNode addEdge(ComputationalNode node, FunctionType type, boolean isBiased) {
+        ComputationalNode newNode = new ComputationalNode(false, type, isBiased);
         if (!nodeMap.containsKey(node)) {
             nodeMap.put(node, new ArrayList<>());
         }
@@ -145,7 +145,7 @@ public class ComputationalGraph {
             switch (child.getOperator()) {
                 case '*':
                     if (left.equals(node)) {
-                        if (nodeMap.get(child).size() == 1 && !nodeMap.containsKey(nodeMap.get(child).get(0))) {
+                        if (!child.isBiased()) {
                             return child.getBackward().multiply(right.getValue().transpose());
                         }
                         return child.getBackward().partial(0, child.getBackward().getRow() - 1, 0, child.getBackward().getColumn() - 2).multiply(right.getValue().transpose());
@@ -249,7 +249,7 @@ public class ComputationalGraph {
                                 break;
                         }
                     } else {
-                        if (child.getOperator() == '*' && !currentNode.isLearnable()) {
+                        if (currentNode.isBiased()) {
                             getBiased(currentNode);
                         }
                         child.setValue(currentNode.getValue().clone());
@@ -259,7 +259,7 @@ public class ComputationalGraph {
                         Matrix result;
                         switch (child.getOperator()) {
                             case '*':
-                                if (!currentNode.isLearnable()) {
+                                if (currentNode.isBiased()) {
                                     getBiased(currentNode);
                                 }
                                 if (child.getValue().getColumn() == currentNode.getValue().getRow()) {

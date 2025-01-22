@@ -9,20 +9,23 @@ public class ComputationalNode {
     private Matrix value;
     private Matrix backward;
     private final boolean isLearnable;
+    private final boolean isBiased;
 
-    public ComputationalNode(boolean learnable, FunctionType functionType) {
+    public ComputationalNode(boolean learnable, FunctionType functionType, boolean isBiased) {
         this.value = null;
         this.backward = null;
         this.isLearnable = learnable;
         this.functionType = functionType;
+        this.isBiased = isBiased;
     }
 
-    public ComputationalNode(boolean learnable, char operator) {
+    public ComputationalNode(boolean learnable, char operator, boolean isBiased) {
         this.value = null;
         this.backward = null;
         this.isLearnable = learnable;
         this.operator = operator;
         this.functionType = null;
+        this.isBiased = isBiased;
     }
 
     public ComputationalNode(Matrix value, char operator) {
@@ -31,6 +34,11 @@ public class ComputationalNode {
         this.isLearnable = true;
         this.operator = operator;
         this.functionType = null;
+        this.isBiased = false;
+    }
+
+    protected boolean isBiased() {
+        return isBiased;
     }
 
     protected FunctionType getFunctionType() {
