@@ -1,36 +1,70 @@
 package ComputationalGraph;
 
-import Math.Matrix;
+import Math.Tensor;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReLU implements Function {
+    /**
+     * Implements the ReLU activation function.
+     */
 
     @Override
-    public Matrix calculate(Matrix matrix) {
-        Matrix result = new Matrix(matrix.getRow(), matrix.getColumn());
-        for (int i = 0; i < matrix.getRow(); i++) {
-            for (int j = 0; j < matrix.getColumn(); j++) {
-                if (matrix.getValue(i, j) > 0) {
-                    result.setValue(i, j, matrix.getValue(i, j));
-                } else {
-                    result.setValue(i, j, 0.0);
-                }
+    public Tensor calculate(Tensor tensor) {
+        /**
+         * Computes the ReLU activation for the given tensor.
+         */
+        int[] shape = tensor.getShape();
+        int rows = shape[0];
+        int cols = shape[1];
+        List<List<Double>> initialData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
+            }
+            initialData.add(row);
+        }
+
+        Tensor result = new Tensor(initialData, shape);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double val = tensor.get(new int[]{i, j});
+                result.set(new int[]{i, j}, Math.max(0, val));
             }
         }
+
         return result;
     }
 
     @Override
-    public Matrix derivative(Matrix matrix) {
-        Matrix result = new Matrix(matrix.getRow(), matrix.getColumn());
-        for (int i = 0; i < matrix.getRow(); i++) {
-            for (int j = 0; j < matrix.getColumn(); j++) {
-                if (matrix.getValue(i, j) != 0) {
-                    result.setValue(i, j, 1.0);
-                } else {
-                    result.setValue(i, j, 0.0);
-                }
+    public Tensor derivative(Tensor tensor) {
+        /**
+         * Computes the derivative of the ReLU function.
+         * Assumes input is the raw pre-activation tensor.
+         */
+        int[] shape = tensor.getShape();
+        int rows = shape[0];
+        int cols = shape[1];
+        List<List<Double>> initialData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
+            }
+            initialData.add(row);
+        }
+
+        Tensor result = new Tensor(initialData, shape);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double val = tensor.get(new int[]{i, j});
+                result.set(new int[]{i, j}, val > 0 ? 1.0 : 0.0);
             }
         }
+
         return result;
     }
 }
