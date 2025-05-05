@@ -120,7 +120,7 @@ public class ComputationalGraphTest {
         ComputationalNode a0 = new ComputationalNode(false, false, "+", null, null);
         ComputationalNode a1 = new ComputationalNode(true, false, "+", null, null);
         ComputationalNode a2 = graph.addEdge(a0, a1, false);
-        ComputationalNode output = graph.addEdge(a2, FunctionType.SOFTMAX, false);
+        graph.addEdge(a2, FunctionType.SOFTMAX, false);
         List<Double> data = new ArrayList<>();
         Random rand = new Random(1);
         for (int i = 0; i < 3; i++) {

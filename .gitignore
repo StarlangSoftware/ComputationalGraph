@@ -1,1 +1,5 @@
-/target/
+# Ignore the target directory and all its contents
+./target/
+
+# Ignore the .vscode directory and all its contents
+./.vscode/
