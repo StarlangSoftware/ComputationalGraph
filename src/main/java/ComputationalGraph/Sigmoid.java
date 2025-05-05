@@ -5,15 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Sigmoid implements Function {
-    /**
-     * Implements the Sigmoid activation function.
-     */
 
+    /**
+     * Computes the Sigmoid activation for the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor tensor) {
-        /**
-         * Computes the Sigmoid activation for the given tensor.
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
@@ -38,12 +35,12 @@ public class Sigmoid implements Function {
         return result;
     }
 
+    /**
+     * Computes the derivative of the Sigmoid function.
+     * Assumes `tensor` is the output of sigmoid(x).
+     */
     @Override
     public Tensor derivative(Tensor tensor) {
-        /**
-         * Computes the derivative of the Sigmoid function.
-         * Assumes `tensor` is the output of sigmoid(x).
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];

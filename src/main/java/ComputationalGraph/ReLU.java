@@ -5,15 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReLU implements Function {
-    /**
-     * Implements the ReLU activation function.
-     */
 
+    /**
+     * Computes the ReLU activation for the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor tensor) {
-        /**
-         * Computes the ReLU activation for the given tensor.
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
@@ -38,12 +35,12 @@ public class ReLU implements Function {
         return result;
     }
 
+    /**
+     * Computes the derivative of the ReLU function.
+     * Assumes input is the raw pre-activation tensor.
+     */
     @Override
     public Tensor derivative(Tensor tensor) {
-        /**
-         * Computes the derivative of the ReLU function.
-         * Assumes input is the raw pre-activation tensor.
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];

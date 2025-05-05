@@ -5,15 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tanh implements Function {
-    /**
-     * Implements the Tanh activation function.
-     */
 
+    /**
+     * Computes the Tanh activation for the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor tensor) {
-        /**
-         * Computes the Tanh activation for the given tensor.
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
@@ -37,12 +34,12 @@ public class Tanh implements Function {
         return result;
     }
 
+    /**
+     * Computes the derivative of the Tanh function.
+     * Assumes input is tanh(x), not raw x.
+     */
     @Override
     public Tensor derivative(Tensor tensor) {
-        /**
-         * Computes the derivative of the Tanh function.
-         * Assumes input is tanh(x), not raw x.
-         */
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
