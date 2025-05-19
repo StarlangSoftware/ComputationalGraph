@@ -58,7 +58,7 @@ public class ComputationalGraphTest {
         Tensor t1 = new Tensor(w1Data, new int[]{5, 4});
         ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1);
         ComputationalNode a1 = graph.addEdge(input, w1, true);
-        ComputationalNode a1Sigmoid = graph.addEdge(a1, FunctionType.SIGMOID, true);
+        ComputationalNode a1Sigmoid = graph.addEdge(a1, new Sigmoid(), true);
 
         // Second layer weights
         List<Double> w2Data = new ArrayList<>();
@@ -69,7 +69,7 @@ public class ComputationalGraphTest {
         Tensor t2 = new Tensor(w2Data, new int[]{5, 20});
         ComputationalNode w2 = new ComputationalNode(true, false, "*", null, t2);
         ComputationalNode a2 = graph.addEdge(a1Sigmoid, w2, true);
-        ComputationalNode a2Sigmoid = graph.addEdge(a2, FunctionType.SIGMOID, true);
+        ComputationalNode a2Sigmoid = graph.addEdge(a2, new Sigmoid(), true);
 
         // Output layer weights
         List<Double> w3Data = new ArrayList<>();
@@ -80,7 +80,7 @@ public class ComputationalGraphTest {
         Tensor t3 = new Tensor(w3Data, new int[]{21, labelMap.size()});
         ComputationalNode w3 = new ComputationalNode(true, false, "*", null, t3);
         ComputationalNode a3 = graph.addEdge(a2Sigmoid, w3, false);
-        graph.addEdge(a3, FunctionType.SOFTMAX, false);
+        graph.addEdge(a3, new Softmax(), false);
 
         // Training
         int epoch = 1000;
@@ -120,7 +120,7 @@ public class ComputationalGraphTest {
         ComputationalNode a0 = new ComputationalNode(false, false, "+", null, null);
         ComputationalNode a1 = new ComputationalNode(true, false, "+", null, null);
         ComputationalNode a2 = graph.addEdge(a0, a1, false);
-        graph.addEdge(a2, FunctionType.SOFTMAX, false);
+        graph.addEdge(a2, new Softmax(), false);
         List<Double> data = new ArrayList<>();
         Random rand = new Random(1);
         for (int i = 0; i < 3; i++) {

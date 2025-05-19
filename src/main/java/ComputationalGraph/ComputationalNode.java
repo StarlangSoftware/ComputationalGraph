@@ -5,34 +5,33 @@ import Math.Tensor;
 public class ComputationalNode {
     private Tensor value;
     private Tensor backward;
-    private boolean learnable;
-    private boolean isBiased;
-    private String operator;
-    private FunctionType functionType;
+    private final boolean learnable;
+    private final boolean isBiased;
+    private final String operator;
+    private final Function function;
 
     /**
      * Initializes a ComputationalNode.
      * @param learnable Indicates whether the node is learnable (e.g., weights)
      * @param isBiased Indicates whether the node is biased
      * @param operator Operator (e.g., '*', '+') for the node
-     * @param functionType Type of function (e.g., activation like SIGMOID)
+     * @param function The function (e.g., activation like SIGMOID)
      * @param value The tensor value associated with the node (optional)
      */
-    public ComputationalNode(boolean learnable, boolean isBiased, String operator, 
-                           FunctionType functionType, Tensor value) {
+    public ComputationalNode(boolean learnable, boolean isBiased, String operator, Function function, Tensor value) {
         this.value = value;
         this.backward = null;
         this.learnable = learnable;
         this.isBiased = isBiased;
         this.operator = operator;
-        this.functionType = functionType;
+        this.function = function;
     }
 
     /**
      * Constructor overload for function type initialization
      */
-    public ComputationalNode(boolean learnable, FunctionType functionType, boolean isBiased) {
-        this(learnable, isBiased, null, functionType, null);
+    public ComputationalNode(boolean learnable, Function function, boolean isBiased) {
+        this(learnable, isBiased, null, function, null);
     }
 
     /**
@@ -45,8 +44,8 @@ public class ComputationalNode {
     @Override
     public String toString() {
         StringBuilder details = new StringBuilder();
-        if (functionType != null) {
-            details.append("Function: ").append(functionType);
+        if (function != null) {
+            details.append("Function: ").append(function);
         }
         if (operator != null) {
             if (details.length() > 0) details.append(", ");
@@ -68,8 +67,8 @@ public class ComputationalNode {
         return isBiased;
     }
 
-    public FunctionType getFunctionType() {
-        return functionType;
+    public Function getFunction() {
+        return function;
     }
 
     public String getOperator() {

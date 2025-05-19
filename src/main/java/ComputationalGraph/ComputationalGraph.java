@@ -1,41 +1,29 @@
 package ComputationalGraph;
 
 import Math.Tensor;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.*;
 
 public class ComputationalGraph {
-    private Map<ComputationalNode, List<ComputationalNode>> node_map = new HashMap<>();
-    private Map<ComputationalNode, List<ComputationalNode>> reverse_node_map = new HashMap<>();
+    private final HashMap<ComputationalNode, List<ComputationalNode>> nodeMap = new HashMap<>();
+    private final HashMap<ComputationalNode, List<ComputationalNode>> reverseNodeMap = new HashMap<>();
 
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
-        ComputationalNode new_node;
-    
-        if (second instanceof FunctionType) {
-            new_node = new ComputationalNode(false, isBiased, null, (FunctionType) second, null);
-        }
-        else if (second instanceof ComputationalNode) {
-            new_node = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null);
-        }
-        else {
+        ComputationalNode newNode;
+        if (second instanceof Function) {
+            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null);
+        } else if (second instanceof ComputationalNode) {
+            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null);
+        } else {
             throw new IllegalArgumentException("Invalid type for 'second'. Must be a ComputationalNode or FunctionType.");
         }
-    
-        node_map.computeIfAbsent(first, k -> new ArrayList<>()).add(new_node);
-        reverse_node_map.computeIfAbsent(new_node, k -> new ArrayList<>()).add(first);
+        nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
+        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
 
         if (second instanceof ComputationalNode) {
-            node_map.computeIfAbsent((ComputationalNode) second, k -> new ArrayList<>()).add(new_node);
-            reverse_node_map.computeIfAbsent(new_node, k -> new ArrayList<>()).add((ComputationalNode) second);
+            nodeMap.computeIfAbsent((ComputationalNode) second, k -> new ArrayList<>()).add(newNode);
+            reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add((ComputationalNode) second);
         }
-    
-        return new_node;
+        return newNode;
     }
 
 
@@ -45,11 +33,11 @@ public class ComputationalGraph {
      * @param visited A set of visited nodes.
      * @return A list representing the partial topological order.
      */
-    private Deque<ComputationalNode> sortRecursive(ComputationalNode node, Set<ComputationalNode> visited) {
-        Deque<ComputationalNode> queue = new LinkedList<>();
+    private LinkedList<ComputationalNode> sortRecursive(ComputationalNode node, Set<ComputationalNode> visited) {
+        LinkedList<ComputationalNode> queue = new LinkedList<>();
         visited.add(node);
-        if (node_map.containsKey(node)) {
-            for (ComputationalNode child : node_map.get(node)) {
+        if (nodeMap.containsKey(node)) {
+            for (ComputationalNode child : nodeMap.get(node)) {
                 if (!visited.contains(child)) {
                     queue.addAll(sortRecursive(child, visited));
                 }
@@ -63,18 +51,18 @@ public class ComputationalGraph {
      * Performs topological sorting on the computational graph.
      * @return A list representing the topological order of the nodes.
      */
-    public List<ComputationalNode> topologicalSort() {
-        Deque<ComputationalNode> sorted_list = new LinkedList<>();
-        Set<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : node_map.keySet()) {
+    public ArrayList<ComputationalNode> topologicalSort() {
+        LinkedList<ComputationalNode> sortedList = new LinkedList<>();
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
-                Deque<ComputationalNode> queue = sortRecursive(node, visited);
+                LinkedList<ComputationalNode> queue = sortRecursive(node, visited);
                 while (!queue.isEmpty()) {
-                    sorted_list.offerLast(queue.pollFirst());
+                    sortedList.offerLast(queue.pollFirst());
                 }
             }
         }
-        return new ArrayList<>(sorted_list);
+        return new ArrayList<>(sortedList);
     }
 
     /**
@@ -86,9 +74,8 @@ public class ComputationalGraph {
             node.setValue(null);
         }
         node.setBackward(null);
-
-        if (node_map.containsKey(node)) {
-            for (ComputationalNode child : node_map.get(node)) {
+        if (nodeMap.containsKey(node)) {
+            for (ComputationalNode child : nodeMap.get(node)) {
                 if (!visited.contains(child)) {
                     clearRecursive(visited, child);
                 }
@@ -100,8 +87,8 @@ public class ComputationalGraph {
      * Clears the values and gradients of all nodes in the graph.
      */
     public void clear() {
-        Set<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : node_map.keySet()) {
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
                 clearRecursive(visited, node);
             }
@@ -116,9 +103,8 @@ public class ComputationalGraph {
         if (node.isLearnable()) {
             node.updateValue();
         }
-
-        if (node_map.containsKey(node)) {
-            for (ComputationalNode child : node_map.get(node)) {
+        if (nodeMap.containsKey(node)) {
+            for (ComputationalNode child : nodeMap.get(node)) {
                 if (!visited.contains(child)) {
                     updateRecursive(visited, child);
                 }
@@ -130,8 +116,8 @@ public class ComputationalGraph {
      * Updates the values of all learnable nodes in the graph.
      */
     public void updateValues() {
-        Set<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : node_map.keySet()) {
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
                 updateRecursive(visited, node);
             }
@@ -145,20 +131,19 @@ public class ComputationalGraph {
      * @return The gradient tensor.
      */
     public Tensor calculateDerivative(ComputationalNode node, ComputationalNode child) {
-        List<ComputationalNode> reverseChildren = reverse_node_map.get(child);
+        List<ComputationalNode> reverseChildren = reverseNodeMap.get(child);
         if (reverseChildren == null || reverseChildren.isEmpty()) {
-            return null; // Or handle this case appropriately
+            return null;
         }
         ComputationalNode left = reverseChildren.get(0);
         if (reverseChildren.size() == 1) {
-            Function function = getFunction(child);
+            Function function = child.getFunction();
             Tensor backward = child.getBackward();
             Tensor derivative = function.derivative(child.getValue());
             if (backward != null && derivative != null) {
                 return backward.multiply(derivative); // Optimized element-wise multiplication
             }
             return null;
-
         } else {
             ComputationalNode right = reverseChildren.get(1);
             if (child.getOperator() != null) {
@@ -214,10 +199,10 @@ public class ComputationalGraph {
     /**
      * Computes the difference between the predicted and actual values (R - Y).
      * @param output The output node of the computational graph.
-     * @param learning_rate The learning rate for gradient descent.
-     * @param class_label_index A list of true class labels (index of the correct class for each sample).
+     * @param learningRate The learning rate for gradient descent.
+     * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
      */
-    public void calculateRMinusY(ComputationalNode output, double learning_rate, List<Integer> class_label_index) {
+    public void calculateRMinusY(ComputationalNode output, double learningRate, List<Integer> classLabelIndex) {
         Tensor outputValue = output.getValue();
         if (outputValue == null) return;
         int rows = outputValue.getShape()[0];
@@ -233,10 +218,10 @@ public class ComputationalGraph {
         Tensor backward = new Tensor(initialBackwardData, new int[]{rows, cols});
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (class_label_index.get(i) == j) {
-                    backward.set(new int[]{i, j}, (1 - outputValue.get(new int[]{i, j})) * learning_rate);
+                if (classLabelIndex.get(i) == j) {
+                    backward.set(new int[]{i, j}, (1 - outputValue.get(new int[]{i, j})) * learningRate);
                 } else {
-                    backward.set(new int[]{i, j}, (-outputValue.get(new int[]{i, j})) * learning_rate);
+                    backward.set(new int[]{i, j}, (-outputValue.get(new int[]{i, j})) * learningRate);
                 }
             }
         }
@@ -245,20 +230,20 @@ public class ComputationalGraph {
 
     /**
      * Performs backpropagation on the computational graph.
-     * @param learning_rate The learning rate for gradient descent.
-     * :param class_label_index: The true class labels (as a list of integers).
+     * @param learningRate The learning rate for gradient descent.
+     * :param classLabelIndex: The true class labels (as a list of integers).
      */
-    public void backpropagation(double learning_rate, List<Integer> class_label_index) {
-        List<ComputationalNode> sorted_nodes = topologicalSort();
-        if (sorted_nodes.isEmpty()) return;
-        ComputationalNode output_node = sorted_nodes.remove(0);
-        calculateRMinusY(output_node, learning_rate, class_label_index);
-        if (!sorted_nodes.isEmpty()) {
-            sorted_nodes.remove(0).setBackward(output_node.getBackward());
+    public void backpropagation(double learningRate, List<Integer> classLabelIndex) {
+        List<ComputationalNode> sortedNodes = topologicalSort();
+        if (sortedNodes.isEmpty()) return;
+        ComputationalNode outputNode = sortedNodes.remove(0);
+        calculateRMinusY(outputNode, learningRate, classLabelIndex);
+        if (!sortedNodes.isEmpty()) {
+            sortedNodes.remove(0).setBackward(outputNode.getBackward());
         }
-        while (!sorted_nodes.isEmpty()) {
-            ComputationalNode node = sorted_nodes.remove(0);
-            List<ComputationalNode> children = node_map.get(node);
+        while (!sortedNodes.isEmpty()) {
+            ComputationalNode node = sortedNodes.remove(0);
+            List<ComputationalNode> children = nodeMap.get(node);
             if (children != null) {
                 for (ComputationalNode child : children) {
                     Tensor derivative = calculateDerivative(node, child);
@@ -300,61 +285,60 @@ public class ComputationalGraph {
             }
             initialBiasedValueData.add(row);
         }
-        Tensor biased_value = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
+        Tensor biasedValue = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < originalCols; j++) {
-                biased_value.set(new int[]{i, j}, firstValue.get(new int[]{i, j}));
+                biasedValue.set(new int[]{i, j}, firstValue.get(new int[]{i, j}));
             }
-            biased_value.set(new int[]{i, originalCols}, 1.0);
+            biasedValue.set(new int[]{i, originalCols}, 1.0);
         }
-        first.setValue(biased_value);
+        first.setValue(biasedValue);
     }
 
     /**
      * Perform a forward pass and return predicted class indices.
      */
     public List<Integer> predict() {
-        List<Integer> class_labels = forwardCalculation();
+        ArrayList<Integer> classLabels = forwardCalculation();
         clear();
-        return class_labels;
+        return classLabels;
     }
 
     /**
      * Perform a forward pass through the computational graph.
      * @return A list of predicted class indices.
      */
-    public List<Integer> forwardCalculation() {
-        List<ComputationalNode> sorted_nodes = topologicalSort();
-        if (sorted_nodes.isEmpty()) return new ArrayList<>();
-        ComputationalNode output_node = sorted_nodes.get(0);
-
-        while (sorted_nodes.size() > 1) {
-            ComputationalNode current_node = sorted_nodes.remove(sorted_nodes.size() - 1);
-            List<ComputationalNode> children = node_map.get(current_node);
+    public ArrayList<Integer> forwardCalculation() {
+        ArrayList<ComputationalNode> sortedNodes = topologicalSort();
+        if (sortedNodes.isEmpty()) return new ArrayList<>();
+        ComputationalNode outputNode = sortedNodes.get(0);
+        while (sortedNodes.size() > 1) {
+            ComputationalNode currentNode = sortedNodes.remove(sortedNodes.size() - 1);
+            List<ComputationalNode> children = nodeMap.get(currentNode);
             if (children != null) {
                 for (ComputationalNode child : children) {
                     if (child.getValue() == null) {
-                        if (child.getFunctionType() != null) {
-                            Function function = getFunction(child);
-                            Tensor currentValue = current_node.getValue();
+                        if (child.getFunction() != null) {
+                            Function function = child.getFunction();
+                            Tensor currentValue = currentNode.getValue();
                             if (currentValue != null) {
                                 child.setValue(function.calculate(currentValue));
                             }
                         } else {
-                            if (current_node.isBiased()) {
-                                getBiased(current_node);
+                            if (currentNode.isBiased()) {
+                                getBiased(currentNode);
                             }
-                            child.setValue(current_node.getValue());
+                            child.setValue(currentNode.getValue());
                         }
                     } else {
-                        if (child.getFunctionType() == null && child.getOperator() != null) {
+                        if (child.getFunction() == null && child.getOperator() != null) {
                             switch (child.getOperator()) {
                                 case "*": {
-                                    if (current_node.isBiased()) {
-                                        getBiased(current_node);
+                                    if (currentNode.isBiased()) {
+                                        getBiased(currentNode);
                                     }
                                     Tensor childValue = child.getValue();
-                                    Tensor currentValue = current_node.getValue();
+                                    Tensor currentValue = currentNode.getValue();
                                     if (childValue != null && currentValue != null) {
                                         if (childValue.getShape()[1] == currentValue.getShape()[0]) {
                                             child.setValue(childValue.dot(currentValue));
@@ -366,7 +350,7 @@ public class ComputationalGraph {
                                 }
                                 case "+": {
                                     Tensor result = child.getValue();
-                                    Tensor currentValue = current_node.getValue();
+                                    Tensor currentValue = currentNode.getValue();
                                     if (result != null && currentValue != null) {
                                         child.setValue(result.add(currentValue));
                                     }
@@ -374,7 +358,7 @@ public class ComputationalGraph {
                                 }
                                 case "-": {
                                     Tensor result = child.getValue();
-                                    Tensor currentValue = current_node.getValue();
+                                    Tensor currentValue = currentNode.getValue();
                                     if (result != null && currentValue != null) {
                                         child.setValue(result.subtract(currentValue));
                                     }
@@ -388,47 +372,24 @@ public class ComputationalGraph {
                 }
             }
         }
-
-        List<Integer> class_label_indices = new ArrayList<>();
-        Tensor outputValue = output_node.getValue();
+        ArrayList<Integer> classLabelIndices = new ArrayList<>();
+        Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
             int rows = outputValue.getShape()[0];
             int cols = outputValue.getShape()[1];
             for (int i = 0; i < rows; i++) {
-                double max_val = Double.NEGATIVE_INFINITY;
-                int label_index = -1;
+                double maxVal = Double.NEGATIVE_INFINITY;
+                int labelIndex = -1;
                 for (int j = 0; j < cols; j++) {
                     double val = outputValue.get(new int[]{i, j});
-                    if (max_val < val) {
-                        max_val = val;
-                        label_index = j;
+                    if (maxVal < val) {
+                        maxVal = val;
+                        labelIndex = j;
                     }
                 }
-                class_label_indices.add(label_index);
+                classLabelIndices.add(labelIndex);
             }
         }
-
-        return class_label_indices;
-    }
-
-    private Function getFunction(ComputationalNode child) {
-        Function function;
-        switch (child.getFunctionType()){
-            case SIGMOID:
-                function = new Sigmoid();
-                break;
-            case TANH:
-                function = new Tanh();
-                break;
-            case RELU:
-                function = new ReLU();
-                break;
-            case SOFTMAX:
-                function = new Softmax();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported function type: " + child.getFunctionType());
-        }
-        return function;
+        return classLabelIndices;
     }
 }
