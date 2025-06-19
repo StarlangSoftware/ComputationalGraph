@@ -1,0 +1,98 @@
+import Classification.Parameter.Parameter;
+import Classification.Performance.ClassificationPerformance;
+import ComputationalGraph.ComputationalGraph;
+
+import Math.*;
+import ComputationalGraph.*;
+
+import java.util.*;
+
+public class NeuralNet extends ComputationalGraph {
+
+    private Tensor createInputTensor(Tensor instance) {
+        List<Double> data = new ArrayList<>();
+        for (int i = 0; i < instance.getShape()[0] - 1; i++) {
+            data.add(instance.getValue(new int[]{i}));
+        }
+        return new Tensor(data, new int[]{1, instance.getShape()[0] - 1});
+    }
+
+    @Override
+    public void train(Tensor trainSet, Parameter parameters) {
+        // Input Node
+        ComputationalNode input = new ComputationalNode(false, "*", true);
+        inputNodes.add(input);
+        // First layer weights
+        List<Double> w1Data = new ArrayList<>();
+        Random rand1 = new Random(1);
+        for (int i = 0; i < 5 * 4; i++) {
+            w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
+        }
+        Tensor t1 = new Tensor(w1Data, new int[]{5, 4});
+        ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1);
+        ComputationalNode a1 = this.addEdge(input, w1, true);
+        ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), true);
+        // Second layer weights
+        List<Double> w2Data = new ArrayList<>();
+        Random rand2 = new Random(1);
+        for (int i = 0; i < 5 * 20; i++) {
+            w2Data.add(-0.01 + (0.02 * rand2.nextDouble()));
+        }
+        Tensor t2 = new Tensor(w2Data, new int[]{5, 20});
+        ComputationalNode w2 = new ComputationalNode(true, false, "*", null, t2);
+        ComputationalNode a2 = this.addEdge(a1Sigmoid, w2, true);
+        ComputationalNode a2Sigmoid = this.addEdge(a2, new Sigmoid(), true);
+        // Output layer weights
+        List<Double> w3Data = new ArrayList<>();
+        Random rand3 = new Random(1);
+        for (int i = 0; i < 21 * 3; i++) {
+            w3Data.add(-0.01 + (0.02 * rand3.nextDouble()));
+        }
+        Tensor t3 = new Tensor(w3Data, new int[]{21, 3});
+        ComputationalNode w3 = new ComputationalNode(true, false, "*", null, t3);
+        ComputationalNode a3 = this.addEdge(a2Sigmoid, w3, false);
+        this.addEdge(a3, new Softmax(), false);
+        // Training
+        ArrayList<Integer> classList = new ArrayList<>();
+        for (int i = 0; i < ((NeuralNetParameter) parameters).getEpoch(); i++) {
+            // Shuffle
+            Random random = new Random(parameters.getSeed());
+            for (int j = 0; j < trainSet.getShape()[0]; j++) {
+                int i1 = random.nextInt(trainSet.getShape()[0]);
+                int i2 = random.nextInt(trainSet.getShape()[0]);
+                for (int k = 0; k < trainSet.getShape()[1]; k++) {
+                    double tmp = trainSet.getValue(new int[]{i1, k});
+                    trainSet.setValue(new int[]{i1, k}, trainSet.getValue(new int[]{i2, k}));
+                    trainSet.setValue(new int[]{i2, k}, tmp);
+                }
+            }
+            for (int j = 0; j < trainSet.getShape()[0]; j++) {
+                Tensor instance = trainSet.get(new int[]{j});
+                input.setValue(createInputTensor(instance));
+                this.forwardCalculation();
+                classList.add((int) instance.getValue(new int[]{instance.getShape()[0] - 1}));
+                this.backpropagation(((NeuralNetParameter) parameters).getLearningRate(), classList);
+                classList.clear();
+            }
+            ((NeuralNetParameter) parameters).setLearningRate();
+        }
+    }
+
+    @Override
+    public ClassificationPerformance test(Tensor testSet) {
+        int count = 0, total = 0;
+        for (int i = 0; i < testSet.getShape()[0]; i++) {
+            Tensor instance = testSet.get(new int[]{i});
+            inputNodes.get(0).setValue(createInputTensor(instance));
+            int classLabel = this.predict().get(0);
+            if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
+                count++;
+            }
+            total++;
+        }
+        return new ClassificationPerformance((count + 0.00) / total);
+    }
+
+    @Override
+    public void loadModel(String fileName) {}
+}

@@ -27,7 +27,7 @@ public class ReLU implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double val = tensor.get(new int[]{i, j});
+                double val = tensor.getValue(new int[]{i, j});
                 result.set(new int[]{i, j}, Math.max(0, val));
             }
         }
@@ -57,7 +57,7 @@ public class ReLU implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double val = tensor.get(new int[]{i, j});
+                double val = tensor.getValue(new int[]{i, j});
                 result.set(new int[]{i, j}, val > 0 ? 1.0 : 0.0);
             }
         }

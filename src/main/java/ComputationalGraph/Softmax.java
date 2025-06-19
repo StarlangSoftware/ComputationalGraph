@@ -31,7 +31,7 @@ public class Softmax implements Function {
             double sum = 0.0;
 
             for (int j = 0; j < cols; j++) {
-                double val = tensor.get(new int[]{i, j});
+                double val = tensor.getValue(new int[]{i, j});
                 double expVal = Math.exp(val);
                 expValues.add(expVal);
                 sum += expVal;
@@ -71,9 +71,9 @@ public class Softmax implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double s_i = softmaxOutput.get(new int[]{i, j});
+                double s_i = softmaxOutput.getValue(new int[]{i, j});
                 for (int k = 0; k < cols; k++) {
-                    double s_k = softmaxOutput.get(new int[]{i, k});
+                    double s_k = softmaxOutput.getValue(new int[]{i, k});
                     double value = (j == k) ? s_i * (1 - s_k) : -s_i * s_k;
                     result.set(new int[]{i, j, k}, value);
                 }

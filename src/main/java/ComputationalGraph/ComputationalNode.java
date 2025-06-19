@@ -87,8 +87,7 @@ public class ComputationalNode {
         if (value != null && backward != null) {
             for (int i = 0; i < value.getShape()[0]; i++) {
                 for (int j = 0; j < value.getShape()[1]; j++) {
-                    value.set(new int[]{i, j}, 
-                            value.get(new int[]{i, j}) + backward.get(new int[]{i, j}));
+                    value.set(new int[]{i, j}, value.getValue(new int[]{i, j}) + backward.getValue(new int[]{i, j}));
                 }
             }
         }

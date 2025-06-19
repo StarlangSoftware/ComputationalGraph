@@ -26,7 +26,7 @@ public class Sigmoid implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double val = tensor.get(new int[]{i, j});
+                double val = tensor.getValue(new int[]{i, j});
                 double sigmoid = 1.0 / (1.0 + Math.exp(-val));
                 result.set(new int[]{i, j}, sigmoid);
             }
@@ -56,7 +56,7 @@ public class Sigmoid implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double sigmoidVal = tensor.get(new int[]{i, j});
+                double sigmoidVal = tensor.getValue(new int[]{i, j});
                 result.set(new int[]{i, j}, sigmoidVal * (1 - sigmoidVal));
             }
         }

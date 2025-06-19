@@ -26,7 +26,7 @@ public class Tanh implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double val = tensor.get(new int[]{i, j});
+                double val = tensor.getValue(new int[]{i, j});
                 result.set(new int[]{i, j}, Math.tanh(val));
             }
         }
@@ -55,7 +55,7 @@ public class Tanh implements Function {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                double tanhVal = tensor.get(new int[]{i, j});
+                double tanhVal = tensor.getValue(new int[]{i, j});
                 result.set(new int[]{i, j}, 1 - tanhVal * tanhVal);
             }
         }

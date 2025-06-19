@@ -1,11 +1,25 @@
 package ComputationalGraph;
 
+import Classification.Parameter.Parameter;
+import Classification.Performance.ClassificationPerformance;
 import Math.Tensor;
+
+import java.io.*;
 import java.util.*;
 
-public class ComputationalGraph {
+public abstract class ComputationalGraph {
+
     private final HashMap<ComputationalNode, List<ComputationalNode>> nodeMap = new HashMap<>();
     private final HashMap<ComputationalNode, List<ComputationalNode>> reverseNodeMap = new HashMap<>();
+    protected ArrayList<ComputationalNode> inputNodes;
+
+    public ComputationalGraph() {
+        this.inputNodes  = new ArrayList<>();
+    }
+
+    public abstract void train(Tensor trainSet, Parameter parameters);
+    public abstract ClassificationPerformance test(Tensor testSet);
+    public abstract void loadModel(String fileName);
 
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
@@ -183,7 +197,7 @@ public class ComputationalGraph {
                                 int[] shape = result.getShape();
                                 for (int i = 0; i < shape[0]; i++) {
                                     for (int j = 0; j < shape[1]; j++) {
-                                        result.set(new int[]{i, j}, -result.get(new int[]{i, j}));
+                                        result.set(new int[]{i, j}, -result.getValue(new int[]{i, j}));
                                     }
                                 }
                                 return result;
@@ -219,9 +233,9 @@ public class ComputationalGraph {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (classLabelIndex.get(i) == j) {
-                    backward.set(new int[]{i, j}, (1 - outputValue.get(new int[]{i, j})) * learningRate);
+                    backward.set(new int[]{i, j}, (1 - outputValue.getValue(new int[]{i, j})) * learningRate);
                 } else {
-                    backward.set(new int[]{i, j}, (-outputValue.get(new int[]{i, j})) * learningRate);
+                    backward.set(new int[]{i, j}, (-outputValue.getValue(new int[]{i, j})) * learningRate);
                 }
             }
         }
@@ -255,7 +269,7 @@ public class ComputationalGraph {
                             int[] shape = currentBackward.getShape();
                             for (int i = 0; i < shape[0]; i++) {
                                 for (int j = 0; j < shape[1]; j++) {
-                                    currentBackward.set(new int[]{i, j}, currentBackward.get(new int[]{i, j}) + derivative.get(new int[]{i, j}));
+                                    currentBackward.set(new int[]{i, j}, currentBackward.getValue(new int[]{i, j}) + derivative.getValue(new int[]{i, j}));
                                 }
                             }
                         }
@@ -263,7 +277,6 @@ public class ComputationalGraph {
                 }
             }
         }
-
         updateValues();
         clear();
     }
@@ -288,7 +301,7 @@ public class ComputationalGraph {
         Tensor biasedValue = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < originalCols; j++) {
-                biasedValue.set(new int[]{i, j}, firstValue.get(new int[]{i, j}));
+                biasedValue.set(new int[]{i, j}, firstValue.getValue(new int[]{i, j}));
             }
             biasedValue.set(new int[]{i, originalCols}, 1.0);
         }
@@ -381,7 +394,7 @@ public class ComputationalGraph {
                 double maxVal = Double.NEGATIVE_INFINITY;
                 int labelIndex = -1;
                 for (int j = 0; j < cols; j++) {
-                    double val = outputValue.get(new int[]{i, j});
+                    double val = outputValue.getValue(new int[]{i, j});
                     if (maxVal < val) {
                         maxVal = val;
                         labelIndex = j;
@@ -391,5 +404,21 @@ public class ComputationalGraph {
             }
         }
         return classLabelIndices;
+    }
+
+    /**
+     * The save method takes a file name as an input and writes model to that file.
+     *
+     * @param fileName File name.
+     */
+    public void save(String fileName) {
+        FileOutputStream outFile;
+        ObjectOutputStream outObject;
+        try {
+            outFile = new FileOutputStream(fileName);
+            outObject = new ObjectOutputStream(outFile);
+            outObject.writeObject(this);
+        } catch (IOException ignored) {
+        }
     }
 }
