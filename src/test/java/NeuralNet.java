@@ -62,8 +62,8 @@ public class NeuralNet extends ComputationalGraph {
                 int i2 = random.nextInt(trainSet.getShape()[0]);
                 for (int k = 0; k < trainSet.getShape()[1]; k++) {
                     double tmp = trainSet.getValue(new int[]{i1, k});
-                    trainSet.setValue(new int[]{i1, k}, trainSet.getValue(new int[]{i2, k}));
-                    trainSet.setValue(new int[]{i2, k}, tmp);
+                    trainSet.set(new int[]{i1, k}, trainSet.getValue(new int[]{i2, k}));
+                    trainSet.set(new int[]{i2, k}, tmp);
                 }
             }
             for (int j = 0; j < trainSet.getShape()[0]; j++) {
