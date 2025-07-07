@@ -45,7 +45,7 @@ public class ComputationalGraphTest {
         graph.train(new Tensor(trainList, new int[]{120, 5}), new NeuralNetParameter(100, 0.99, 0.1, 1));
         ClassificationPerformance performance = graph.test(new  Tensor(testList, new int[]{30, 5}));
         System.out.println("Accuracy: " + performance.getAccuracy());
-        assertEquals(0.9666666666666667, performance.getAccuracy(), 0.01);
+        assertEquals(1.0, performance.getAccuracy(), 0.01);
     }
 
 

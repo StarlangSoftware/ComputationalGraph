@@ -155,7 +155,7 @@ public abstract class ComputationalGraph {
             Tensor backward = child.getBackward();
             Tensor derivative = function.derivative(child.getValue());
             if (backward != null && derivative != null) {
-                return backward.multiply(derivative); // Optimized element-wise multiplication
+                return backward.hadamardProduct(derivative);
             }
             return null;
         } else {
@@ -168,7 +168,7 @@ public abstract class ComputationalGraph {
                                 Tensor backward = child.getBackward();
                                 Tensor rightValue = right.getValue();
                                 if (backward != null && rightValue != null) {
-                                    return backward.dot(rightValue.transpose(null));
+                                    return backward.multiply(rightValue.transpose(null));
                                 }
                                 return null;
                             }
@@ -176,14 +176,14 @@ public abstract class ComputationalGraph {
                             Tensor partial = backward.partial(new int[]{0, 0}, new int[]{backward.getShape()[0], backward.getShape()[1] - 1});
                             Tensor rightValue = right.getValue();
                             if (partial != null && rightValue != null) {
-                                return partial.dot(rightValue.transpose(null));
+                                return partial.multiply(rightValue.transpose(null));
                             }
                             return null;
                         }
                         Tensor leftValue = left.getValue();
                         Tensor backward = child.getBackward();
                         if (leftValue != null && backward != null) {
-                            return leftValue.transpose(null).dot(backward);
+                            return leftValue.transpose(null).multiply(backward);
                         }
                         return null;
                     case "+":
@@ -354,9 +354,9 @@ public abstract class ComputationalGraph {
                                     Tensor currentValue = currentNode.getValue();
                                     if (childValue != null && currentValue != null) {
                                         if (childValue.getShape()[1] == currentValue.getShape()[0]) {
-                                            child.setValue(childValue.dot(currentValue));
+                                            child.setValue(childValue.multiply(currentValue));
                                         } else {
-                                            child.setValue(currentValue.dot(childValue));
+                                            child.setValue(currentValue.multiply(childValue));
                                         }
                                     }
                                     break;
