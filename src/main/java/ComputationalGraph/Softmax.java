@@ -12,37 +12,51 @@ public class Softmax implements Function {
     @Override
     public Tensor calculate(Tensor tensor) {
         int[] shape = tensor.getShape();
-        int rows = shape[0];
-        int cols = shape[1];
+        if (shape.length < 1) {
+            throw new IllegalArgumentException("Softmax requires at least 1D tensor.");
+        }
 
-        List<List<Double>> initialData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
+        int lastDim = shape[shape.length - 1];
+        int[] outerShape = new int[shape.length - 1];
+        System.arraycopy(shape, 0, outerShape, 0, shape.length - 1);
+        int outerDim = tensor.computeNumElements(outerShape);
+        
+        List<Double> resultData = new ArrayList<>();
+
+        for (int i = 0; i < outerDim; i++) {
+            // Build base index prefix: e.g. (batch, time) part
+            int[] baseIdx = tensor.unflattenIndex(i, tensor.computeStrides(outerShape));
+            
+            // Get the row values for this outer index
             List<Double> row = new ArrayList<>();
-            for (int j = 0; j < cols; j++) {
-                row.add(0.0);
+            double maxVal = Double.NEGATIVE_INFINITY;
+            
+            for (int j = 0; j < lastDim; j++) {
+                int[] fullIdx = new int[baseIdx.length + 1];
+                System.arraycopy(baseIdx, 0, fullIdx, 0, baseIdx.length);
+                fullIdx[fullIdx.length - 1] = j;
+                
+                double val = tensor.getValue(fullIdx);
+                row.add(val);
+                maxVal = Math.max(maxVal, val);
             }
-            initialData.add(row);
+
+            // Compute exp with stability
+            List<Double> expRow = new ArrayList<>();
+            double sumExp = 0.0;
+            for (double val : row) {
+                double expVal = Math.exp(val - maxVal);
+                expRow.add(expVal);
+                sumExp += expVal;
+            }
+
+            // Normalize
+            for (double expVal : expRow) {
+                resultData.add(expVal / sumExp);
+            }
         }
 
-        Tensor result = new Tensor(initialData, shape);
-
-        for (int i = 0; i < rows; i++) {
-            List<Double> expValues = new ArrayList<>();
-            double sum = 0.0;
-
-            for (int j = 0; j < cols; j++) {
-                double val = tensor.getValue(new int[]{i, j});
-                double expVal = Math.exp(val);
-                expValues.add(expVal);
-                sum += expVal;
-            }
-
-            for (int j = 0; j < cols; j++) {
-                result.set(new int[]{i, j}, expValues.get(j) / sum);
-            }
-        }
-
-        return result;
+        return new Tensor(resultData, shape);
     }
 
     @Override

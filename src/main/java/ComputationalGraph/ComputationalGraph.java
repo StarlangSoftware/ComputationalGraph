@@ -195,10 +195,10 @@ public abstract class ComputationalGraph {
                             Tensor result = child.getBackward();
                             if (result != null) {
                                 int[] shape = result.getShape();
-                                for (int i = 0; i < shape[0]; i++) {
-                                    for (int j = 0; j < shape[1]; j++) {
-                                        result.set(new int[]{i, j}, -result.getValue(new int[]{i, j}));
-                                    }
+                                int totalElements = computeNumElements(shape);
+                                for (int i = 0; i < totalElements; i++) {
+                                    int[] indices = unflattenIndex(i, computeStrides(shape));
+                                    result.set(indices, -result.getValue(indices));
                                 }
                                 return result;
                             }
@@ -219,24 +219,36 @@ public abstract class ComputationalGraph {
     public void calculateRMinusY(ComputationalNode output, double learningRate, List<Integer> classLabelIndex) {
         Tensor outputValue = output.getValue();
         if (outputValue == null) return;
-        int rows = outputValue.getShape()[0];
-        int cols = outputValue.getShape()[1];
-        List<List<Double>> initialBackwardData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
-            for (int j = 0; j < cols; j++) {
-                row.add(0.0);
-            }
-            initialBackwardData.add(row);
+        
+        int[] shape = outputValue.getShape();
+        if (shape.length < 2) {
+            throw new IllegalArgumentException("Output tensor must have at least 2 dimensions for classification. Got shape " + Arrays.toString(shape));
         }
-        Tensor backward = new Tensor(initialBackwardData, new int[]{rows, cols});
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (classLabelIndex.get(i) == j) {
-                    backward.set(new int[]{i, j}, (1 - outputValue.getValue(new int[]{i, j})) * learningRate);
-                } else {
-                    backward.set(new int[]{i, j}, (-outputValue.getValue(new int[]{i, j})) * learningRate);
-                }
+        
+        // Create backward tensor with same shape as output
+        List<Double> backwardData = new ArrayList<>();
+        int totalElements = computeNumElements(shape);
+        for (int i = 0; i < totalElements; i++) {
+            backwardData.add(0.0);
+        }
+        Tensor backward = new Tensor(backwardData, shape);
+        
+        // Calculate batch size (all dimensions except the last one)
+        int[] batchShape = Arrays.copyOfRange(shape, 0, shape.length - 1);
+        int batchSize = computeNumElements(batchShape);
+        int classAxis = shape[shape.length - 1];
+        
+        // For each sample in the batch
+        for (int i = 0; i < batchSize; i++) {
+            for (int j = 0; j < classAxis; j++) {
+                // Create indices for this position
+                int[] indices = unflattenIndex(i, computeStrides(batchShape));
+                int[] fullIndices = Arrays.copyOf(indices, indices.length + 1);
+                fullIndices[fullIndices.length - 1] = j;
+                
+                double pred = outputValue.getValue(fullIndices);
+                double target = (classLabelIndex.get(i) == j) ? 1.0 : 0.0;
+                backward.set(fullIndices, (target - pred) * learningRate);
             }
         }
         output.setBackward(backward);
@@ -267,10 +279,12 @@ public abstract class ComputationalGraph {
                         } else {
                             Tensor currentBackward = node.getBackward();
                             int[] shape = currentBackward.getShape();
-                            for (int i = 0; i < shape[0]; i++) {
-                                for (int j = 0; j < shape[1]; j++) {
-                                    currentBackward.set(new int[]{i, j}, currentBackward.getValue(new int[]{i, j}) + derivative.getValue(new int[]{i, j}));
-                                }
+                            int totalElements = computeNumElements(shape);
+                            for (int i = 0; i < totalElements; i++) {
+                                int[] indices = unflattenIndex(i, computeStrides(shape));
+                                double current = currentBackward.getValue(indices);
+                                double delta = derivative.getValue(indices);
+                                currentBackward.set(indices, current + delta);
                             }
                         }
                     }
@@ -282,30 +296,35 @@ public abstract class ComputationalGraph {
     }
 
     /**
-     * Add a bias term to the node's value by appending a column of ones.
+     * Add a bias term to the node's value by appending a 1 along the last axis.
      */
     public void getBiased(ComputationalNode first) {
         Tensor firstValue = first.getValue();
         if (firstValue == null) return;
-        int rows = firstValue.getShape()[0];
-        int originalCols = firstValue.getShape()[1];
-        int newCols = originalCols + 1;
-        List<List<Double>> initialBiasedValueData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
-            for (int j = 0; j < newCols; j++) {
-                row.add(0.0);
-            }
-            initialBiasedValueData.add(row);
+        
+        int[] originalShape = firstValue.getShape();
+        int[] newShape = Arrays.copyOf(originalShape, originalShape.length);
+        newShape[newShape.length - 1] = originalShape[originalShape.length - 1] + 1;
+        
+        // Create biased tensor data
+        List<Double> biasedData = new ArrayList<>();
+        
+        // Copy original data
+        int totalElements = computeNumElements(originalShape);
+        for (int i = 0; i < totalElements; i++) {
+            int[] indices = unflattenIndex(i, computeStrides(originalShape));
+            biasedData.add(firstValue.getValue(indices));
         }
-        Tensor biasedValue = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < originalCols; j++) {
-                biasedValue.set(new int[]{i, j}, firstValue.getValue(new int[]{i, j}));
-            }
-            biasedValue.set(new int[]{i, originalCols}, 1.0);
+        
+        // Append bias = 1 for each outer sample
+        int[] batchShape = Arrays.copyOfRange(originalShape, 0, originalShape.length - 1);
+        int batchSize = computeNumElements(batchShape);
+        for (int i = 0; i < batchSize; i++) {
+            biasedData.add(1.0);
         }
-        first.setValue(biasedValue);
+        
+        Tensor biasedTensor = new Tensor(biasedData, newShape);
+        first.setValue(biasedTensor);
     }
 
     /**
@@ -388,13 +407,28 @@ public abstract class ComputationalGraph {
         ArrayList<Integer> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
-            int rows = outputValue.getShape()[0];
-            int cols = outputValue.getShape()[1];
-            for (int i = 0; i < rows; i++) {
+            int[] shape = outputValue.getShape();
+            if (shape.length < 2) {
+                throw new IllegalArgumentException("Output tensor must have at least 2 dimensions for classification. Got shape " + Arrays.toString(shape));
+            }
+            
+            // Calculate batch size (all dimensions except the last one)
+            int[] batchShape = Arrays.copyOfRange(shape, 0, shape.length - 1);
+            int batchSize = computeNumElements(batchShape);
+            int classAxis = shape[shape.length - 1];
+            
+            // For each sample in the batch, find the class with maximum probability
+            for (int i = 0; i < batchSize; i++) {
                 double maxVal = Double.NEGATIVE_INFINITY;
                 int labelIndex = -1;
-                for (int j = 0; j < cols; j++) {
-                    double val = outputValue.getValue(new int[]{i, j});
+                
+                for (int j = 0; j < classAxis; j++) {
+                    // Create indices for this position
+                    int[] indices = unflattenIndex(i, computeStrides(batchShape));
+                    int[] fullIndices = Arrays.copyOf(indices, indices.length + 1);
+                    fullIndices[fullIndices.length - 1] = j;
+                    
+                    double val = outputValue.getValue(fullIndices);
                     if (maxVal < val) {
                         maxVal = val;
                         labelIndex = j;
@@ -404,6 +438,49 @@ public abstract class ComputationalGraph {
             }
         }
         return classLabelIndices;
+    }
+
+    /**
+     * Helper method to compute the number of elements in a tensor shape.
+     * @param shape The shape array.
+     * @return Total number of elements.
+     */
+    private int computeNumElements(int[] shape) {
+        int product = 1;
+        for (int dim : shape) {
+            product *= dim;
+        }
+        return product;
+    }
+
+    /**
+     * Helper method to compute strides for a tensor shape.
+     * @param shape The shape array.
+     * @return Strides array.
+     */
+    private int[] computeStrides(int[] shape) {
+        int[] strides = new int[shape.length];
+        int product = 1;
+        for (int i = shape.length - 1; i >= 0; i--) {
+            strides[i] = product;
+            product *= shape[i];
+        }
+        return strides;
+    }
+
+    /**
+     * Helper method to convert a flat index to multi-dimensional indices.
+     * @param flatIndex The flat index to convert.
+     * @param strides The strides array.
+     * @return Multi-dimensional indices.
+     */
+    private int[] unflattenIndex(int flatIndex, int[] strides) {
+        int[] indices = new int[strides.length];
+        for (int i = 0; i < strides.length; i++) {
+            indices[i] = flatIndex / strides[i];
+            flatIndex %= strides[i];
+        }
+        return indices;
     }
 
     /**

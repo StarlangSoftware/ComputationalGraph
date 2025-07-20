@@ -85,10 +85,13 @@ public class ComputationalNode {
 
     public void updateValue() {
         if (value != null && backward != null) {
-            for (int i = 0; i < value.getShape()[0]; i++) {
-                for (int j = 0; j < value.getShape()[1]; j++) {
-                    value.set(new int[]{i, j}, value.getValue(new int[]{i, j}) + backward.getValue(new int[]{i, j}));
-                }
+            int[] shape = value.getShape();
+            int totalElements = value.getData().size();
+            for (int i = 0; i < totalElements; i++) {
+                int[] indices = value.unflattenIndex(i, value.computeStrides(shape));
+                double current = value.getValue(indices);
+                double delta = backward.getValue(indices);
+                value.set(indices, current + delta);
             }
         }
     }
