@@ -4,7 +4,6 @@ import Math.Tensor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Softmax implements Function, Serializable {
     /**
@@ -16,9 +15,9 @@ public class Softmax implements Function, Serializable {
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
-        List<List<Double>> initialData = new ArrayList<>();
+        ArrayList<ArrayList<Double>> initialData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
+            ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
                 row.add(0.0);
             }
@@ -26,7 +25,7 @@ public class Softmax implements Function, Serializable {
         }
         Tensor result = new Tensor(initialData, shape);
         for (int i = 0; i < rows; i++) {
-            List<Double> expValues = new ArrayList<>();
+            ArrayList<Double> expValues = new ArrayList<>();
             double sum = 0.0;
             for (int j = 0; j < cols; j++) {
                 double val = tensor.getValue(new int[]{i, j});
@@ -43,16 +42,15 @@ public class Softmax implements Function, Serializable {
 
     @Override
     public Tensor derivative(Tensor tensor) {
-        // Compute the softmax output first (like in the Python version)
         Tensor softmaxOutput = calculate(tensor);
         int[] shape = softmaxOutput.getShape();
         int rows = shape[0];
         int cols = shape[1];
-        List<List<List<Double>>> initialData = new ArrayList<>();
+        ArrayList<ArrayList<ArrayList<Double>>> initialData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<List<Double>> rowList = new ArrayList<>();
+            ArrayList<ArrayList<Double>> rowList = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
-                List<Double> colList = new ArrayList<>();
+                ArrayList<Double> colList = new ArrayList<>();
                 for (int k = 0; k < cols; k++) {
                     colList.add(0.0);
                 }

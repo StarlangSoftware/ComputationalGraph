@@ -19,6 +19,7 @@ public abstract class ComputationalGraph implements Serializable {
 
     public abstract void train(Tensor trainSet, Parameter parameters);
     public abstract ClassificationPerformance test(Tensor testSet);
+    protected abstract ArrayList<Integer> getClassLabes(ComputationalNode outputNode);
 
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
@@ -144,7 +145,7 @@ public abstract class ComputationalGraph implements Serializable {
      * @return The gradient tensor.
      */
     private Tensor calculateDerivative(ComputationalNode node, ComputationalNode child) {
-        List<ComputationalNode> reverseChildren = reverseNodeMap.get(child);
+        ArrayList<ComputationalNode> reverseChildren = reverseNodeMap.get(child);
         if (reverseChildren == null || reverseChildren.isEmpty()) {
             return null;
         }
@@ -187,22 +188,8 @@ public abstract class ComputationalGraph implements Serializable {
                         return null;
                     case "+":
                         return child.getBackward();
-                    case "-":
-                        if (left == node) {
-                            return child.getBackward();
-                        } else {
-                            Tensor result = child.getBackward();
-                            if (result != null) {
-                                int[] shape = result.getShape();
-                                for (int i = 0; i < shape[0]; i++) {
-                                    for (int j = 0; j < shape[1]; j++) {
-                                        result.set(new int[]{i, j}, -result.getValue(new int[]{i, j}));
-                                    }
-                                }
-                                return result;
-                            }
-                            return null;
-                        }
+                    default:
+                        throw new IllegalArgumentException("Unsupported operator: " + child.getOperator());
                 }
             }
         }
@@ -215,14 +202,14 @@ public abstract class ComputationalGraph implements Serializable {
      * @param learningRate The learning rate for gradient descent.
      * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
      */
-    private void calculateRMinusY(ComputationalNode output, double learningRate, List<Integer> classLabelIndex) {
+    private void calculateRMinusY(ComputationalNode output, double learningRate, ArrayList<Integer> classLabelIndex) {
         Tensor outputValue = output.getValue();
         if (outputValue == null) return;
         int rows = outputValue.getShape()[0];
         int cols = outputValue.getShape()[1];
-        List<List<Double>> initialBackwardData = new ArrayList<>();
+        ArrayList<ArrayList<Double>> initialBackwardData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
+            ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
                 row.add(0.0);
             }
@@ -246,8 +233,8 @@ public abstract class ComputationalGraph implements Serializable {
      * @param learningRate The learning rate for gradient descent.
      * :param classLabelIndex: The true class labels (as a list of integers).
      */
-    protected void backpropagation(double learningRate, List<Integer> classLabelIndex) {
-        List<ComputationalNode> sortedNodes = topologicalSort();
+    protected void backpropagation(double learningRate, ArrayList<Integer> classLabelIndex) {
+        LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
         calculateRMinusY(outputNode, learningRate, classLabelIndex);
@@ -256,7 +243,7 @@ public abstract class ComputationalGraph implements Serializable {
         }
         while (!sortedNodes.isEmpty()) {
             ComputationalNode node = sortedNodes.remove(0);
-            List<ComputationalNode> children = nodeMap.get(node);
+            ArrayList<ComputationalNode> children = nodeMap.get(node);
             if (children != null) {
                 for (ComputationalNode child : children) {
                     Tensor derivative = calculateDerivative(node, child);
@@ -289,9 +276,9 @@ public abstract class ComputationalGraph implements Serializable {
         int rows = firstValue.getShape()[0];
         int originalCols = firstValue.getShape()[1];
         int newCols = originalCols + 1;
-        List<List<Double>> initialBiasedValueData = new ArrayList<>();
+        ArrayList<ArrayList<Double>> initialBiasedValueData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
+            ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < newCols; j++) {
                 row.add(0.0);
             }
@@ -310,7 +297,7 @@ public abstract class ComputationalGraph implements Serializable {
     /**
      * Perform a forward pass and return predicted class indices.
      */
-    public List<Integer> predict() {
+    public ArrayList<Integer> predict() {
         ArrayList<Integer> classLabels = forwardCalculation();
         clear();
         return classLabels;
@@ -326,7 +313,7 @@ public abstract class ComputationalGraph implements Serializable {
         ComputationalNode outputNode = sortedNodes.getFirst();
         while (sortedNodes.size() > 1) {
             ComputationalNode currentNode = sortedNodes.removeLast();
-            List<ComputationalNode> children = nodeMap.get(currentNode);
+            ArrayList<ComputationalNode> children = nodeMap.get(currentNode);
             if (children != null) {
                 for (ComputationalNode child : children) {
                     if (child.getValue() == null) {
@@ -368,14 +355,6 @@ public abstract class ComputationalGraph implements Serializable {
                                     }
                                     break;
                                 }
-                                case "-": {
-                                    Tensor result = child.getValue();
-                                    Tensor currentValue = currentNode.getValue();
-                                    if (result != null && currentValue != null) {
-                                        child.setValue(result.subtract(currentValue));
-                                    }
-                                    break;
-                                }
                                 default:
                                     throw new IllegalArgumentException("Unsupported operator: " + child.getOperator());
                             }
@@ -384,25 +363,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        ArrayList<Integer> classLabelIndices = new ArrayList<>();
-        Tensor outputValue = outputNode.getValue();
-        if (outputValue != null) {
-            int rows = outputValue.getShape()[0];
-            int cols = outputValue.getShape()[1];
-            for (int i = 0; i < rows; i++) {
-                double maxVal = Double.NEGATIVE_INFINITY;
-                int labelIndex = -1;
-                for (int j = 0; j < cols; j++) {
-                    double val = outputValue.getValue(new int[]{i, j});
-                    if (maxVal < val) {
-                        maxVal = val;
-                        labelIndex = j;
-                    }
-                }
-                classLabelIndices.add(labelIndex);
-            }
-        }
-        return classLabelIndices;
+        return getClassLabes(outputNode);
     }
 
     /**

@@ -4,7 +4,6 @@ import Math.Tensor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 public class ReLU implements Function, Serializable {
 
@@ -16,9 +15,9 @@ public class ReLU implements Function, Serializable {
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
-        List<List<Double>> initialData = new ArrayList<>();
+        ArrayList<ArrayList<Double>> initialData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
+            ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
                 row.add(0.0);
             }
@@ -43,9 +42,9 @@ public class ReLU implements Function, Serializable {
         int[] shape = tensor.getShape();
         int rows = shape[0];
         int cols = shape[1];
-        List<List<Double>> initialData = new ArrayList<>();
+        ArrayList<ArrayList<Double>> initialData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
-            List<Double> row = new ArrayList<>();
+            ArrayList<Double> row = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
                 row.add(0.0);
             }

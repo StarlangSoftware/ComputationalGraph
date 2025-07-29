@@ -75,6 +75,11 @@ public class ComputationalGraphTest {
             public ClassificationPerformance test(Tensor testSet) {
                 return null;
             }
+
+            @Override
+            protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+                return null;
+            }
         };
         graph.train(null, null);
     }

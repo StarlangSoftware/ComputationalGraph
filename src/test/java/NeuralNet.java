@@ -11,7 +11,7 @@ import java.util.*;
 public class NeuralNet extends ComputationalGraph implements Serializable {
 
     private Tensor createInputTensor(Tensor instance) {
-        List<Double> data = new ArrayList<>();
+        ArrayList<Double> data = new ArrayList<>();
         for (int i = 0; i < instance.getShape()[0] - 1; i++) {
             data.add(instance.getValue(new int[]{i}));
         }
@@ -24,7 +24,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode input = new ComputationalNode(false, "*", true);
         inputNodes.add(input);
         // First layer weights
-        List<Double> w1Data = new ArrayList<>();
+        ArrayList<Double> w1Data = new ArrayList<>();
         Random rand1 = new Random(1);
         for (int i = 0; i < 5 * 4; i++) {
             w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
@@ -34,7 +34,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode a1 = this.addEdge(input, w1, true);
         ComputationalNode a1TanH = this.addEdge(a1, new Tanh(), true);
         // Second layer weights
-        List<Double> w2Data = new ArrayList<>();
+        ArrayList<Double> w2Data = new ArrayList<>();
         Random rand2 = new Random(1);
         for (int i = 0; i < 5 * 20; i++) {
             w2Data.add(-0.01 + (0.02 * rand2.nextDouble()));
@@ -44,7 +44,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode a2 = this.addEdge(a1TanH, w2, true);
         ComputationalNode a2Sigmoid = this.addEdge(a2, new Sigmoid(), true);
         // Output layer weights
-        List<Double> w3Data = new ArrayList<>();
+        ArrayList<Double> w3Data = new ArrayList<>();
         Random rand3 = new Random(1);
         for (int i = 0; i < 21 * 3; i++) {
             w3Data.add(-0.01 + (0.02 * rand3.nextDouble()));
@@ -92,5 +92,25 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
             total++;
         }
         return new ClassificationPerformance((count + 0.00) / total);
+    }
+
+    @Override
+    protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+        ArrayList<Integer> classLabelIndices = new ArrayList<>();
+        Tensor outputValue = outputNode.getValue();
+        if (outputValue != null) {
+            int cols = outputValue.getShape()[1];
+            double maxVal = Double.NEGATIVE_INFINITY;
+            int labelIndex = -1;
+            for (int j = 0; j < cols; j++) {
+                double val = outputValue.getValue(new int[]{0, j});
+                if (maxVal < val) {
+                    maxVal = val;
+                    labelIndex = j;
+                }
+            }
+            classLabelIndices.add(labelIndex);
+        }
+        return classLabelIndices;
     }
 }
