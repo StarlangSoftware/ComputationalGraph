@@ -7,10 +7,10 @@ import Math.Tensor;
 import java.io.*;
 import java.util.*;
 
-public abstract class ComputationalGraph {
+public abstract class ComputationalGraph implements Serializable {
 
-    private final HashMap<ComputationalNode, List<ComputationalNode>> nodeMap = new HashMap<>();
-    private final HashMap<ComputationalNode, List<ComputationalNode>> reverseNodeMap = new HashMap<>();
+    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap = new HashMap<>();
+    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new HashMap<>();
     protected ArrayList<ComputationalNode> inputNodes;
 
     public ComputationalGraph() {
@@ -19,7 +19,6 @@ public abstract class ComputationalGraph {
 
     public abstract void train(Tensor trainSet, Parameter parameters);
     public abstract ClassificationPerformance test(Tensor testSet);
-    public abstract void loadModel(String fileName);
 
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
@@ -47,7 +46,7 @@ public abstract class ComputationalGraph {
      * @param visited A set of visited nodes.
      * @return A list representing the partial topological order.
      */
-    private LinkedList<ComputationalNode> sortRecursive(ComputationalNode node, Set<ComputationalNode> visited) {
+    private LinkedList<ComputationalNode> sortRecursive(ComputationalNode node, HashSet<ComputationalNode> visited) {
         LinkedList<ComputationalNode> queue = new LinkedList<>();
         visited.add(node);
         if (nodeMap.containsKey(node)) {
@@ -65,7 +64,7 @@ public abstract class ComputationalGraph {
      * Performs topological sorting on the computational graph.
      * @return A list representing the topological order of the nodes.
      */
-    public ArrayList<ComputationalNode> topologicalSort() {
+    private LinkedList<ComputationalNode> topologicalSort() {
         LinkedList<ComputationalNode> sortedList = new LinkedList<>();
         HashSet<ComputationalNode> visited = new HashSet<>();
         for (ComputationalNode node : nodeMap.keySet()) {
@@ -76,13 +75,13 @@ public abstract class ComputationalGraph {
                 }
             }
         }
-        return new ArrayList<>(sortedList);
+        return sortedList;
     }
 
     /**
      * Recursive helper function to clear the values and gradients of nodes.
      */
-    private void clearRecursive(Set<ComputationalNode> visited, ComputationalNode node) {
+    private void clearRecursive(HashSet<ComputationalNode> visited, ComputationalNode node) {
         visited.add(node);
         if (!node.isLearnable()) {
             node.setValue(null);
@@ -100,7 +99,7 @@ public abstract class ComputationalGraph {
     /**
      * Clears the values and gradients of all nodes in the graph.
      */
-    public void clear() {
+    private void clear() {
         HashSet<ComputationalNode> visited = new HashSet<>();
         for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
@@ -112,7 +111,7 @@ public abstract class ComputationalGraph {
     /**
      * Recursive helper function to update the values of learnable nodes.
      */
-    private void updateRecursive(Set<ComputationalNode> visited, ComputationalNode node) {
+    private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node) {
         visited.add(node);
         if (node.isLearnable()) {
             node.updateValue();
@@ -129,7 +128,7 @@ public abstract class ComputationalGraph {
     /**
      * Updates the values of all learnable nodes in the graph.
      */
-    public void updateValues() {
+    private void updateValues() {
         HashSet<ComputationalNode> visited = new HashSet<>();
         for (ComputationalNode node : nodeMap.keySet()) {
             if (!visited.contains(node)) {
@@ -144,7 +143,7 @@ public abstract class ComputationalGraph {
      * @param child Child node.
      * @return The gradient tensor.
      */
-    public Tensor calculateDerivative(ComputationalNode node, ComputationalNode child) {
+    private Tensor calculateDerivative(ComputationalNode node, ComputationalNode child) {
         List<ComputationalNode> reverseChildren = reverseNodeMap.get(child);
         if (reverseChildren == null || reverseChildren.isEmpty()) {
             return null;
@@ -195,10 +194,10 @@ public abstract class ComputationalGraph {
                             Tensor result = child.getBackward();
                             if (result != null) {
                                 int[] shape = result.getShape();
-                                int totalElements = computeNumElements(shape);
-                                for (int i = 0; i < totalElements; i++) {
-                                    int[] indices = unflattenIndex(i, computeStrides(shape));
-                                    result.set(indices, -result.getValue(indices));
+                                for (int i = 0; i < shape[0]; i++) {
+                                    for (int j = 0; j < shape[1]; j++) {
+                                        result.set(new int[]{i, j}, -result.getValue(new int[]{i, j}));
+                                    }
                                 }
                                 return result;
                             }
@@ -216,39 +215,27 @@ public abstract class ComputationalGraph {
      * @param learningRate The learning rate for gradient descent.
      * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
      */
-    public void calculateRMinusY(ComputationalNode output, double learningRate, List<Integer> classLabelIndex) {
+    private void calculateRMinusY(ComputationalNode output, double learningRate, List<Integer> classLabelIndex) {
         Tensor outputValue = output.getValue();
         if (outputValue == null) return;
-        
-        int[] shape = outputValue.getShape();
-        if (shape.length < 2) {
-            throw new IllegalArgumentException("Output tensor must have at least 2 dimensions for classification. Got shape " + Arrays.toString(shape));
+        int rows = outputValue.getShape()[0];
+        int cols = outputValue.getShape()[1];
+        List<List<Double>> initialBackwardData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
+            }
+            initialBackwardData.add(row);
         }
-        
-        // Create backward tensor with same shape as output
-        List<Double> backwardData = new ArrayList<>();
-        int totalElements = computeNumElements(shape);
-        for (int i = 0; i < totalElements; i++) {
-            backwardData.add(0.0);
-        }
-        Tensor backward = new Tensor(backwardData, shape);
-        
-        // Calculate batch size (all dimensions except the last one)
-        int[] batchShape = Arrays.copyOfRange(shape, 0, shape.length - 1);
-        int batchSize = computeNumElements(batchShape);
-        int classAxis = shape[shape.length - 1];
-        
-        // For each sample in the batch
-        for (int i = 0; i < batchSize; i++) {
-            for (int j = 0; j < classAxis; j++) {
-                // Create indices for this position
-                int[] indices = unflattenIndex(i, computeStrides(batchShape));
-                int[] fullIndices = Arrays.copyOf(indices, indices.length + 1);
-                fullIndices[fullIndices.length - 1] = j;
-                
-                double pred = outputValue.getValue(fullIndices);
-                double target = (classLabelIndex.get(i) == j) ? 1.0 : 0.0;
-                backward.set(fullIndices, (target - pred) * learningRate);
+        Tensor backward = new Tensor(initialBackwardData, new int[]{rows, cols});
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (classLabelIndex.get(i) == j) {
+                    backward.set(new int[]{i, j}, (1 - outputValue.getValue(new int[]{i, j})) * learningRate);
+                } else {
+                    backward.set(new int[]{i, j}, (-outputValue.getValue(new int[]{i, j})) * learningRate);
+                }
             }
         }
         output.setBackward(backward);
@@ -259,7 +246,7 @@ public abstract class ComputationalGraph {
      * @param learningRate The learning rate for gradient descent.
      * :param classLabelIndex: The true class labels (as a list of integers).
      */
-    public void backpropagation(double learningRate, List<Integer> classLabelIndex) {
+    protected void backpropagation(double learningRate, List<Integer> classLabelIndex) {
         List<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
@@ -279,12 +266,10 @@ public abstract class ComputationalGraph {
                         } else {
                             Tensor currentBackward = node.getBackward();
                             int[] shape = currentBackward.getShape();
-                            int totalElements = computeNumElements(shape);
-                            for (int i = 0; i < totalElements; i++) {
-                                int[] indices = unflattenIndex(i, computeStrides(shape));
-                                double current = currentBackward.getValue(indices);
-                                double delta = derivative.getValue(indices);
-                                currentBackward.set(indices, current + delta);
+                            for (int i = 0; i < shape[0]; i++) {
+                                for (int j = 0; j < shape[1]; j++) {
+                                    currentBackward.set(new int[]{i, j}, currentBackward.getValue(new int[]{i, j}) + derivative.getValue(new int[]{i, j}));
+                                }
                             }
                         }
                     }
@@ -296,35 +281,30 @@ public abstract class ComputationalGraph {
     }
 
     /**
-     * Add a bias term to the node's value by appending a 1 along the last axis.
+     * Add a bias term to the node's value by appending a column of ones.
      */
-    public void getBiased(ComputationalNode first) {
+    private void getBiased(ComputationalNode first) {
         Tensor firstValue = first.getValue();
         if (firstValue == null) return;
-        
-        int[] originalShape = firstValue.getShape();
-        int[] newShape = Arrays.copyOf(originalShape, originalShape.length);
-        newShape[newShape.length - 1] = originalShape[originalShape.length - 1] + 1;
-        
-        // Create biased tensor data
-        List<Double> biasedData = new ArrayList<>();
-        
-        // Copy original data
-        int totalElements = computeNumElements(originalShape);
-        for (int i = 0; i < totalElements; i++) {
-            int[] indices = unflattenIndex(i, computeStrides(originalShape));
-            biasedData.add(firstValue.getValue(indices));
+        int rows = firstValue.getShape()[0];
+        int originalCols = firstValue.getShape()[1];
+        int newCols = originalCols + 1;
+        List<List<Double>> initialBiasedValueData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < newCols; j++) {
+                row.add(0.0);
+            }
+            initialBiasedValueData.add(row);
         }
-        
-        // Append bias = 1 for each outer sample
-        int[] batchShape = Arrays.copyOfRange(originalShape, 0, originalShape.length - 1);
-        int batchSize = computeNumElements(batchShape);
-        for (int i = 0; i < batchSize; i++) {
-            biasedData.add(1.0);
+        Tensor biasedValue = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < originalCols; j++) {
+                biasedValue.set(new int[]{i, j}, firstValue.getValue(new int[]{i, j}));
+            }
+            biasedValue.set(new int[]{i, originalCols}, 1.0);
         }
-        
-        Tensor biasedTensor = new Tensor(biasedData, newShape);
-        first.setValue(biasedTensor);
+        first.setValue(biasedValue);
     }
 
     /**
@@ -340,12 +320,12 @@ public abstract class ComputationalGraph {
      * Perform a forward pass through the computational graph.
      * @return A list of predicted class indices.
      */
-    public ArrayList<Integer> forwardCalculation() {
-        ArrayList<ComputationalNode> sortedNodes = topologicalSort();
+    protected ArrayList<Integer> forwardCalculation() {
+        LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
-        ComputationalNode outputNode = sortedNodes.get(0);
+        ComputationalNode outputNode = sortedNodes.getFirst();
         while (sortedNodes.size() > 1) {
-            ComputationalNode currentNode = sortedNodes.remove(sortedNodes.size() - 1);
+            ComputationalNode currentNode = sortedNodes.removeLast();
             List<ComputationalNode> children = nodeMap.get(currentNode);
             if (children != null) {
                 for (ComputationalNode child : children) {
@@ -407,28 +387,13 @@ public abstract class ComputationalGraph {
         ArrayList<Integer> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
-            int[] shape = outputValue.getShape();
-            if (shape.length < 2) {
-                throw new IllegalArgumentException("Output tensor must have at least 2 dimensions for classification. Got shape " + Arrays.toString(shape));
-            }
-            
-            // Calculate batch size (all dimensions except the last one)
-            int[] batchShape = Arrays.copyOfRange(shape, 0, shape.length - 1);
-            int batchSize = computeNumElements(batchShape);
-            int classAxis = shape[shape.length - 1];
-            
-            // For each sample in the batch, find the class with maximum probability
-            for (int i = 0; i < batchSize; i++) {
+            int rows = outputValue.getShape()[0];
+            int cols = outputValue.getShape()[1];
+            for (int i = 0; i < rows; i++) {
                 double maxVal = Double.NEGATIVE_INFINITY;
                 int labelIndex = -1;
-                
-                for (int j = 0; j < classAxis; j++) {
-                    // Create indices for this position
-                    int[] indices = unflattenIndex(i, computeStrides(batchShape));
-                    int[] fullIndices = Arrays.copyOf(indices, indices.length + 1);
-                    fullIndices[fullIndices.length - 1] = j;
-                    
-                    double val = outputValue.getValue(fullIndices);
+                for (int j = 0; j < cols; j++) {
+                    double val = outputValue.getValue(new int[]{i, j});
                     if (maxVal < val) {
                         maxVal = val;
                         labelIndex = j;
@@ -438,49 +403,6 @@ public abstract class ComputationalGraph {
             }
         }
         return classLabelIndices;
-    }
-
-    /**
-     * Helper method to compute the number of elements in a tensor shape.
-     * @param shape The shape array.
-     * @return Total number of elements.
-     */
-    private int computeNumElements(int[] shape) {
-        int product = 1;
-        for (int dim : shape) {
-            product *= dim;
-        }
-        return product;
-    }
-
-    /**
-     * Helper method to compute strides for a tensor shape.
-     * @param shape The shape array.
-     * @return Strides array.
-     */
-    private int[] computeStrides(int[] shape) {
-        int[] strides = new int[shape.length];
-        int product = 1;
-        for (int i = shape.length - 1; i >= 0; i--) {
-            strides[i] = product;
-            product *= shape[i];
-        }
-        return strides;
-    }
-
-    /**
-     * Helper method to convert a flat index to multi-dimensional indices.
-     * @param flatIndex The flat index to convert.
-     * @param strides The strides array.
-     * @return Multi-dimensional indices.
-     */
-    private int[] unflattenIndex(int flatIndex, int[] strides) {
-        int[] indices = new int[strides.length];
-        for (int i = 0; i < strides.length; i++) {
-            indices[i] = flatIndex / strides[i];
-            flatIndex %= strides[i];
-        }
-        return indices;
     }
 
     /**
@@ -496,6 +418,19 @@ public abstract class ComputationalGraph {
             outObject = new ObjectOutputStream(outFile);
             outObject.writeObject(this);
         } catch (IOException ignored) {
+            System.out.println("Object could not be saved.");
+        }
+    }
+
+    public static ComputationalGraph loadModel(String fileName) {
+        FileInputStream inFile;
+        ObjectInputStream inObject;
+        try {
+            inFile = new FileInputStream(fileName);
+            inObject = new ObjectInputStream(inFile);
+            return (ComputationalGraph) inObject.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
         }
     }
 }

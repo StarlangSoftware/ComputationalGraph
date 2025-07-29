@@ -2,7 +2,9 @@ package ComputationalGraph;
 
 import Math.Tensor;
 
-public class ComputationalNode {
+import java.io.Serializable;
+
+public class ComputationalNode implements Serializable {
     private Tensor value;
     private Tensor backward;
     private final boolean learnable;
@@ -53,14 +55,12 @@ public class ComputationalNode {
         }
         if (value != null) {
             if (details.length() > 0) details.append(", ");
-            details.append("Value Shape: [").append(value.getShape()[0])
-                  .append(", ").append(value.getShape()[1]).append("]");
+            details.append("Value Shape: [").append(value.getShape()[0]).append(", ").append(value.getShape()[1]).append("]");
         }
         if (details.length() > 0) details.append(", ");
         details.append("is learnable: ").append(learnable);
         details.append(", is biased: ").append(isBiased);
-        
-        return "Node(" + details.toString() + ")";
+        return "Node(" + details + ")";
     }
 
     public boolean isBiased() {
@@ -85,13 +85,10 @@ public class ComputationalNode {
 
     public void updateValue() {
         if (value != null && backward != null) {
-            int[] shape = value.getShape();
-            int totalElements = value.getData().size();
-            for (int i = 0; i < totalElements; i++) {
-                int[] indices = value.unflattenIndex(i, value.computeStrides(shape));
-                double current = value.getValue(indices);
-                double delta = backward.getValue(indices);
-                value.set(indices, current + delta);
+            for (int i = 0; i < value.getShape()[0]; i++) {
+                for (int j = 0; j < value.getShape()[1]; j++) {
+                    value.set(new int[]{i, j}, value.getValue(new int[]{i, j}) + backward.getValue(new int[]{i, j}));
+                }
             }
         }
     }

@@ -1,10 +1,12 @@
 package ComputationalGraph;
 
 import Math.Tensor;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Softmax implements Function {
+public class Softmax implements Function, Serializable {
     /**
      * Implements the Softmax activation function.
      */
@@ -12,62 +14,40 @@ public class Softmax implements Function {
     @Override
     public Tensor calculate(Tensor tensor) {
         int[] shape = tensor.getShape();
-        if (shape.length < 1) {
-            throw new IllegalArgumentException("Softmax requires at least 1D tensor.");
-        }
-
-        int lastDim = shape[shape.length - 1];
-        int[] outerShape = new int[shape.length - 1];
-        System.arraycopy(shape, 0, outerShape, 0, shape.length - 1);
-        int outerDim = tensor.computeNumElements(outerShape);
-        
-        List<Double> resultData = new ArrayList<>();
-
-        for (int i = 0; i < outerDim; i++) {
-            // Build base index prefix: e.g. (batch, time) part
-            int[] baseIdx = tensor.unflattenIndex(i, tensor.computeStrides(outerShape));
-            
-            // Get the row values for this outer index
+        int rows = shape[0];
+        int cols = shape[1];
+        List<List<Double>> initialData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
             List<Double> row = new ArrayList<>();
-            double maxVal = Double.NEGATIVE_INFINITY;
-            
-            for (int j = 0; j < lastDim; j++) {
-                int[] fullIdx = new int[baseIdx.length + 1];
-                System.arraycopy(baseIdx, 0, fullIdx, 0, baseIdx.length);
-                fullIdx[fullIdx.length - 1] = j;
-                
-                double val = tensor.getValue(fullIdx);
-                row.add(val);
-                maxVal = Math.max(maxVal, val);
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
             }
-
-            // Compute exp with stability
-            List<Double> expRow = new ArrayList<>();
-            double sumExp = 0.0;
-            for (double val : row) {
-                double expVal = Math.exp(val - maxVal);
-                expRow.add(expVal);
-                sumExp += expVal;
+            initialData.add(row);
+        }
+        Tensor result = new Tensor(initialData, shape);
+        for (int i = 0; i < rows; i++) {
+            List<Double> expValues = new ArrayList<>();
+            double sum = 0.0;
+            for (int j = 0; j < cols; j++) {
+                double val = tensor.getValue(new int[]{i, j});
+                double expVal = Math.exp(val);
+                expValues.add(expVal);
+                sum += expVal;
             }
-
-            // Normalize
-            for (double expVal : expRow) {
-                resultData.add(expVal / sumExp);
+            for (int j = 0; j < cols; j++) {
+                result.set(new int[]{i, j}, expValues.get(j) / sum);
             }
         }
-
-        return new Tensor(resultData, shape);
+        return result;
     }
 
     @Override
     public Tensor derivative(Tensor tensor) {
         // Compute the softmax output first (like in the Python version)
         Tensor softmaxOutput = calculate(tensor);
-
         int[] shape = softmaxOutput.getShape();
         int rows = shape[0];
         int cols = shape[1];
-
         List<List<List<Double>>> initialData = new ArrayList<>();
         for (int i = 0; i < rows; i++) {
             List<List<Double>> rowList = new ArrayList<>();
@@ -80,9 +60,7 @@ public class Softmax implements Function {
             }
             initialData.add(rowList);
         }
-
         Tensor result = new Tensor(initialData, new int[]{rows, cols, cols});
-
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 double s_i = softmaxOutput.getValue(new int[]{i, j});
@@ -93,7 +71,6 @@ public class Softmax implements Function {
                 }
             }
         }
-
         return result;
     }
 }

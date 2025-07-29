@@ -5,9 +5,10 @@ import ComputationalGraph.ComputationalGraph;
 import Math.*;
 import ComputationalGraph.*;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class NeuralNet extends ComputationalGraph {
+public class NeuralNet extends ComputationalGraph implements Serializable {
 
     private Tensor createInputTensor(Tensor instance) {
         List<Double> data = new ArrayList<>();
@@ -92,7 +93,4 @@ public class NeuralNet extends ComputationalGraph {
         }
         return new ClassificationPerformance((count + 0.00) / total);
     }
-
-    @Override
-    public void loadModel(String fileName) {}
 }

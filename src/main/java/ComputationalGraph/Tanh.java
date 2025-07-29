@@ -1,10 +1,12 @@
 package ComputationalGraph;
 
 import Math.Tensor;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tanh implements Function {
+public class Tanh implements Function, Serializable {
 
     /**
      * Computes the Tanh activation for the given tensor.
@@ -12,16 +14,24 @@ public class Tanh implements Function {
     @Override
     public Tensor calculate(Tensor tensor) {
         int[] shape = tensor.getShape();
-        List<Double> resultData = new ArrayList<>();
-        int totalElements = tensor.getData().size();
-        
-        for (int i = 0; i < totalElements; i++) {
-            int[] indices = tensor.unflattenIndex(i, tensor.computeStrides(shape));
-            double val = tensor.getValue(indices);
-            resultData.add(Math.tanh(val));
+        int rows = shape[0];
+        int cols = shape[1];
+        List<List<Double>> initialData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
+            }
+            initialData.add(row);
         }
-        
-        return new Tensor(resultData, shape);
+        Tensor result = new Tensor(initialData, shape);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double val = tensor.getValue(new int[]{i, j});
+                result.set(new int[]{i, j}, Math.tanh(val));
+            }
+        }
+        return result;
     }
 
     /**
@@ -31,15 +41,23 @@ public class Tanh implements Function {
     @Override
     public Tensor derivative(Tensor tensor) {
         int[] shape = tensor.getShape();
-        List<Double> resultData = new ArrayList<>();
-        int totalElements = tensor.getData().size();
-        
-        for (int i = 0; i < totalElements; i++) {
-            int[] indices = tensor.unflattenIndex(i, tensor.computeStrides(shape));
-            double tanhVal = tensor.getValue(indices);
-            resultData.add(1 - tanhVal * tanhVal);
+        int rows = shape[0];
+        int cols = shape[1];
+        List<List<Double>> initialData = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+            List<Double> row = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                row.add(0.0);
+            }
+            initialData.add(row);
         }
-        
-        return new Tensor(resultData, shape);
+        Tensor result = new Tensor(initialData, shape);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                double tanhVal = tensor.getValue(new int[]{i, j});
+                result.set(new int[]{i, j}, 1 - tanhVal * tanhVal);
+            }
+        }
+        return result;
     }
 }
