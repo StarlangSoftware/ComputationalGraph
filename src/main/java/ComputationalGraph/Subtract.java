@@ -22,7 +22,7 @@ public class Subtract implements Function, Serializable {
         Tensor result = new Tensor(initialData, shape);
         for (int i = 0; i < shape[0]; i++) {
             for (int j = 0; j < shape[1]; j++) {
-                result.set(new int[]{i, j}, -result.getValue(new int[]{i, j}));
+                result.set(new int[]{i, j}, -matrix.getValue(new int[]{i, j}));
             }
         }
         return result;
