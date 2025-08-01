@@ -84,12 +84,19 @@ public class ComputationalNode implements Serializable {
     }
 
     public void updateValue() {
-        if (value != null && backward != null) {
-            for (int i = 0; i < value.getShape()[0]; i++) {
-                for (int j = 0; j < value.getShape()[1]; j++) {
-                    value.set(new int[]{i, j}, value.getValue(new int[]{i, j}) + backward.getValue(new int[]{i, j}));
+        if (value.getShape()[value.getShape().length - 1] + 1 == backward.getShape()[value.getShape().length - 1]) {
+            int[] endIndexes = new int[backward.getShape().length];
+            for (int i = 0; i < endIndexes.length; i++) {
+                if (i == endIndexes.length - 1) {
+                    endIndexes[i] = backward.getShape()[i] - 1;
+                } else {
+                    endIndexes[i] = backward.getShape()[i];
                 }
             }
+            Tensor partial = backward.partial(new int[backward.getShape().length], endIndexes);
+            this.setValue(value.add(partial));
+        } else {
+            this.setValue(value.add(backward));
         }
     }
 

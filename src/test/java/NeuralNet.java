@@ -15,7 +15,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         for (int i = 0; i < instance.getShape()[0] - 1; i++) {
             data.add(instance.getValue(new int[]{i}));
         }
-        return new Tensor(data, new int[]{1, instance.getShape()[0] - 1});
+        return new Tensor(data, new int[]{1, 1, instance.getShape()[0] - 1});
     }
 
     @Override
@@ -29,7 +29,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         for (int i = 0; i < 5 * 4; i++) {
             w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
         }
-        Tensor t1 = new Tensor(w1Data, new int[]{5, 4});
+        Tensor t1 = new Tensor(w1Data, new int[]{1, 5, 4});
         ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1);
         ComputationalNode a1 = this.addEdge(input, w1, true);
         ComputationalNode a1TanH = this.addEdge(a1, new Tanh(), true);
@@ -39,7 +39,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         for (int i = 0; i < 5 * 20; i++) {
             w2Data.add(-0.01 + (0.02 * rand2.nextDouble()));
         }
-        Tensor t2 = new Tensor(w2Data, new int[]{5, 20});
+        Tensor t2 = new Tensor(w2Data, new int[]{1, 5, 20});
         ComputationalNode w2 = new ComputationalNode(true, false, "*", null, t2);
         ComputationalNode a2 = this.addEdge(a1TanH, w2, true);
         ComputationalNode a2Sigmoid = this.addEdge(a2, new Sigmoid(), true);
@@ -49,7 +49,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         for (int i = 0; i < 21 * 3; i++) {
             w3Data.add(-0.01 + (0.02 * rand3.nextDouble()));
         }
-        Tensor t3 = new Tensor(w3Data, new int[]{21, 3});
+        Tensor t3 = new Tensor(w3Data, new int[]{1, 21, 3});
         ComputationalNode w3 = new ComputationalNode(true, false, "*", null, t3);
         ComputationalNode a3 = this.addEdge(a2Sigmoid, w3, false);
         this.addEdge(a3, new Softmax(), false);
@@ -99,11 +99,11 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ArrayList<Integer> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
-            int cols = outputValue.getShape()[1];
+            int cols = outputValue.getShape()[2];
             double maxVal = Double.NEGATIVE_INFINITY;
             int labelIndex = -1;
             for (int j = 0; j < cols; j++) {
-                double val = outputValue.getValue(new int[]{0, j});
+                double val = outputValue.getValue(new int[]{0, 0, j});
                 if (maxVal < val) {
                     maxVal = val;
                     labelIndex = j;

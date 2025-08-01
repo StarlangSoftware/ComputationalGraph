@@ -12,63 +12,46 @@ public class Softmax implements Function, Serializable {
 
     @Override
     public Tensor calculate(Tensor tensor) {
-        int[] shape = tensor.getShape();
-        int rows = shape[0];
-        int cols = shape[1];
-        ArrayList<ArrayList<Double>> initialData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            ArrayList<Double> row = new ArrayList<>();
-            for (int j = 0; j < cols; j++) {
-                row.add(0.0);
-            }
-            initialData.add(row);
-        }
-        Tensor result = new Tensor(initialData, shape);
-        for (int i = 0; i < rows; i++) {
-            ArrayList<Double> expValues = new ArrayList<>();
-            double sum = 0.0;
-            for (int j = 0; j < cols; j++) {
-                double val = tensor.getValue(new int[]{i, j});
-                double expVal = Math.exp(val);
-                expValues.add(expVal);
-                sum += expVal;
-            }
-            for (int j = 0; j < cols; j++) {
-                result.set(new int[]{i, j}, expValues.get(j) / sum);
+        ArrayList<Double> values = new ArrayList<>();
+        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
+        int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
+        double sum = 0.0;
+        ArrayList<Double> sumList = new ArrayList<>();
+        for (int i = 0; i < oldValues.size(); i++) {
+            sum += Math.exp(oldValues.get(i));
+            if ((i + 1) % lastDimensionSize == 0) {
+                sumList.add(sum);
+                sum = 0.0;
             }
         }
-        return result;
+        for (int i = 0; i < oldValues.size(); i++) {
+            values.add(Math.exp(oldValues.get(i)) / sumList.get(i / lastDimensionSize));
+        }
+        return new Tensor(values, tensor.getShape());
     }
 
     @Override
     public Tensor derivative(Tensor tensor) {
-        Tensor softmaxOutput = calculate(tensor);
-        int[] shape = softmaxOutput.getShape();
-        int rows = shape[0];
-        int cols = shape[1];
-        ArrayList<ArrayList<ArrayList<Double>>> initialData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            ArrayList<ArrayList<Double>> rowList = new ArrayList<>();
-            for (int j = 0; j < cols; j++) {
-                ArrayList<Double> colList = new ArrayList<>();
-                for (int k = 0; k < cols; k++) {
-                    colList.add(0.0);
-                }
-                rowList.add(colList);
-            }
-            initialData.add(rowList);
+        int[] shape = new int[tensor.getShape().length];
+        if (tensor.getShape().length - 1 >= 0) {
+            System.arraycopy(tensor.getShape(), 1, shape, 0, tensor.getShape().length - 1);
         }
-        Tensor result = new Tensor(initialData, new int[]{rows, cols, cols});
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                double s_i = softmaxOutput.getValue(new int[]{i, j});
-                for (int k = 0; k < cols; k++) {
-                    double s_k = softmaxOutput.getValue(new int[]{i, k});
-                    double value = (j == k) ? s_i * (1 - s_k) : -s_i * s_k;
-                    result.set(new int[]{i, j, k}, value);
+        int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
+        shape[shape.length - 1] = lastDimensionSize;
+        ArrayList<Double> values = new ArrayList<>();
+        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
+        for (int i = 0; i < oldValues.size(); i++) {
+            double v1 = oldValues.get(i);
+            int startIndex = i / lastDimensionSize;
+            for (int j = 0; j < lastDimensionSize; j++) {
+                double v2 = oldValues.get(startIndex + j);
+                if (v1 % lastDimensionSize == j) {
+                    values.add(v1 * (1 - v2));
+                } else {
+                    values.add(-v1 * v2);
                 }
             }
         }
-        return result;
+        return new Tensor(values, shape);
     }
 }

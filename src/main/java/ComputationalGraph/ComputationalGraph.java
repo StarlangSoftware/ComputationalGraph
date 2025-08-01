@@ -14,7 +14,7 @@ public abstract class ComputationalGraph implements Serializable {
     protected ArrayList<ComputationalNode> inputNodes;
 
     public ComputationalGraph() {
-        this.inputNodes  = new ArrayList<>();
+        this.inputNodes = new ArrayList<>();
     }
 
     public abstract void train(Tensor trainSet, Parameter parameters);
@@ -138,6 +138,16 @@ public abstract class ComputationalGraph implements Serializable {
         }
     }
 
+    private int[] transposeAxes(int length) {
+        int[] axes = new int[length];
+        for (int i = 0; i < axes.length - 2; i++) {
+            axes[i] = i;
+        }
+        axes[axes.length - 1] = axes.length - 2;
+        axes[axes.length - 2] = axes.length - 1;
+        return axes;
+    }
+
     /**
      * Calculates the derivative of the child node with respect to the parent node.
      * @param node Parent node.
@@ -168,22 +178,30 @@ public abstract class ComputationalGraph implements Serializable {
                                 Tensor backward = child.getBackward();
                                 Tensor rightValue = right.getValue();
                                 if (backward != null && rightValue != null) {
-                                    return backward.multiply(rightValue.transpose(null));
+                                    return backward.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                                 }
                                 return null;
                             }
                             Tensor backward = child.getBackward();
-                            Tensor partial = backward.partial(new int[]{0, 0}, new int[]{backward.getShape()[0], backward.getShape()[1] - 1});
+                            int[] endIndexes = new int[backward.getShape().length];
+                            for (int i = 0; i < endIndexes.length; i++) {
+                                if (i == endIndexes.length - 1) {
+                                    endIndexes[i] = backward.getShape()[i] - 1;
+                                } else {
+                                    endIndexes[i] = backward.getShape()[i];
+                                }
+                            }
+                            Tensor partial = backward.partial(new int[backward.getShape().length], endIndexes);
                             Tensor rightValue = right.getValue();
                             if (partial != null && rightValue != null) {
-                                return partial.multiply(rightValue.transpose(null));
+                                return partial.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                             }
                             return null;
                         }
                         Tensor leftValue = left.getValue();
                         Tensor backward = child.getBackward();
                         if (leftValue != null && backward != null) {
-                            return leftValue.transpose(null).multiply(backward);
+                            return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
                         }
                         return null;
                     case "+":
@@ -203,28 +221,20 @@ public abstract class ComputationalGraph implements Serializable {
      * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
      */
     private void calculateRMinusY(ComputationalNode output, double learningRate, ArrayList<Integer> classLabelIndex) {
-        Tensor outputValue = output.getValue();
-        if (outputValue == null) return;
-        int rows = outputValue.getShape()[0];
-        int cols = outputValue.getShape()[1];
-        ArrayList<ArrayList<Double>> initialBackwardData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            ArrayList<Double> row = new ArrayList<>();
-            for (int j = 0; j < cols; j++) {
-                row.add(0.0);
-            }
-            initialBackwardData.add(row);
+        ArrayList<Double> values = new ArrayList<>();
+        ArrayList<Double> outputValues = (ArrayList<Double>) output.getValue().getData();
+        int shapeSize = 1;
+        for (int i = 1; i < output.getValue().getShape().length; i++) {
+            shapeSize *= output.getValue().getShape()[i];
         }
-        Tensor backward = new Tensor(initialBackwardData, new int[]{rows, cols});
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (classLabelIndex.get(i) == j) {
-                    backward.set(new int[]{i, j}, (1 - outputValue.getValue(new int[]{i, j})) * learningRate);
-                } else {
-                    backward.set(new int[]{i, j}, (-outputValue.getValue(new int[]{i, j})) * learningRate);
-                }
+        for (int i = 0; i < outputValues.size(); i++) {
+            if (i % output.getValue().getShape()[output.getValue().getShape().length - 1] == classLabelIndex.get(i / shapeSize)) {
+                values.add((1 - outputValues.get(i)) * learningRate);
+            } else {
+                values.add(-outputValues.get(i) * learningRate);
             }
         }
+        Tensor backward = new Tensor(values, output.getValue().getShape());
         output.setBackward(backward);
     }
 
@@ -251,13 +261,7 @@ public abstract class ComputationalGraph implements Serializable {
                         if (node.getBackward() == null) {
                             node.setBackward(derivative);
                         } else {
-                            Tensor currentBackward = node.getBackward();
-                            int[] shape = currentBackward.getShape();
-                            for (int i = 0; i < shape[0]; i++) {
-                                for (int j = 0; j < shape[1]; j++) {
-                                    currentBackward.set(new int[]{i, j}, currentBackward.getValue(new int[]{i, j}) + derivative.getValue(new int[]{i, j}));
-                                }
-                            }
+                            node.setBackward(node.getBackward().add(derivative));
                         }
                     }
                 }
@@ -271,26 +275,24 @@ public abstract class ComputationalGraph implements Serializable {
      * Add a bias term to the node's value by appending a column of ones.
      */
     private void getBiased(ComputationalNode first) {
-        Tensor firstValue = first.getValue();
-        if (firstValue == null) return;
-        int rows = firstValue.getShape()[0];
-        int originalCols = firstValue.getShape()[1];
-        int newCols = originalCols + 1;
-        ArrayList<ArrayList<Double>> initialBiasedValueData = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-            ArrayList<Double> row = new ArrayList<>();
-            for (int j = 0; j < newCols; j++) {
-                row.add(0.0);
+        int lastDimensionSize = first.getValue().getShape()[first.getValue().getShape().length - 1];
+        ArrayList<Double> values = new ArrayList<>();
+        ArrayList<Double> oldValues = (ArrayList<Double>) first.getValue().getData();
+        for (int i = 0; i < oldValues.size(); i++) {
+            values.add(oldValues.get(i));
+            if ((i + 1) % lastDimensionSize == 0) {
+                values.add(1.0);
             }
-            initialBiasedValueData.add(row);
         }
-        Tensor biasedValue = new Tensor(initialBiasedValueData, new int[]{rows, newCols});
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < originalCols; j++) {
-                biasedValue.set(new int[]{i, j}, firstValue.getValue(new int[]{i, j}));
+        int[] shape = new int[first.getValue().getShape().length];
+        for (int i = 0; i < shape.length; i++) {
+            if (i == shape.length - 1) {
+                shape[i] = first.getValue().getShape()[i] + 1;
+            } else {
+                shape[i] = first.getValue().getShape()[i];
             }
-            biasedValue.set(new int[]{i, originalCols}, 1.0);
         }
+        Tensor biasedValue = new Tensor(values, shape);
         first.setValue(biasedValue);
     }
 
@@ -339,7 +341,7 @@ public abstract class ComputationalGraph implements Serializable {
                                     Tensor childValue = child.getValue();
                                     Tensor currentValue = currentNode.getValue();
                                     if (childValue != null && currentValue != null) {
-                                        if (childValue.getShape()[1] == currentValue.getShape()[0]) {
+                                        if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
                                             child.setValue(childValue.multiply(currentValue));
                                         } else {
                                             child.setValue(currentValue.multiply(childValue));
