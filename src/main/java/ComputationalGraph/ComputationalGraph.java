@@ -165,9 +165,14 @@ public abstract class ComputationalGraph implements Serializable {
             Tensor backward = child.getBackward();
             Tensor derivative = function.derivative(child.getValue());
             if (backward != null && derivative != null) {
-                return backward.hadamardProduct(derivative);
+                if (function instanceof Softmax) {
+                    // check axes
+                    return backward.multiply(derivative);
+                } else {
+                    return backward.hadamardProduct(derivative);
+                }
             }
-            return null;
+            throw new NullPointerException("Backward and/or derivative values are null");
         } else {
             ComputationalNode right = reverseChildren.get(1);
             if (child.getOperator() != null) {
@@ -180,7 +185,7 @@ public abstract class ComputationalGraph implements Serializable {
                                 if (backward != null && rightValue != null) {
                                     return backward.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                                 }
-                                return null;
+                                throw new NullPointerException("Backward and/or right child values are null");
                             }
                             Tensor backward = child.getBackward();
                             int[] endIndexes = new int[backward.getShape().length];
@@ -196,14 +201,14 @@ public abstract class ComputationalGraph implements Serializable {
                             if (partial != null && rightValue != null) {
                                 return partial.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                             }
-                            return null;
+                            throw new NullPointerException("Backward and/or right child values are null");
                         }
                         Tensor leftValue = left.getValue();
                         Tensor backward = child.getBackward();
                         if (leftValue != null && backward != null) {
                             return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
                         }
-                        return null;
+                        throw new NullPointerException("Backward and/or left child values are null");
                     case "+":
                         return child.getBackward();
                     default:
