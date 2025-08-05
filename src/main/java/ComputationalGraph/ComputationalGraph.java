@@ -32,7 +32,6 @@ public abstract class ComputationalGraph implements Serializable {
         }
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
-
         if (second instanceof ComputationalNode) {
             nodeMap.computeIfAbsent((ComputationalNode) second, k -> new ArrayList<>()).add(newNode);
             reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add((ComputationalNode) second);
@@ -138,6 +137,10 @@ public abstract class ComputationalGraph implements Serializable {
         }
     }
 
+    /**
+     * Swaps last two dimensions of the Tensor.
+     * @param length dimension size.
+     */
     private int[] transposeAxes(int length) {
         int[] axes = new int[length];
         for (int i = 0; i < axes.length - 2; i++) {
@@ -246,7 +249,7 @@ public abstract class ComputationalGraph implements Serializable {
     /**
      * Performs backpropagation on the computational graph.
      * @param learningRate The learning rate for gradient descent.
-     * :param classLabelIndex: The true class labels (as a list of integers).
+     * @param classLabelIndex The true class labels (as a list of integers).
      */
     protected void backpropagation(double learningRate, ArrayList<Integer> classLabelIndex) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
@@ -375,7 +378,6 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * The save method takes a file name as an input and writes model to that file.
-     *
      * @param fileName File name.
      */
     public void save(String fileName) {
@@ -390,6 +392,10 @@ public abstract class ComputationalGraph implements Serializable {
         }
     }
 
+    /**
+     * The loadModel method takes a file name as an input and loads the {@link ComputationalGraph} related to that file.
+     * @param fileName File name.
+     */
     public static ComputationalGraph loadModel(String fileName) {
         FileInputStream inFile;
         ObjectInputStream inObject;
