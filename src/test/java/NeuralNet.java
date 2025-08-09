@@ -21,7 +21,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     @Override
     public void train(Tensor trainSet, Parameter parameters) {
         // Input Node
-        ComputationalNode input = new ComputationalNode(false, "*", true, false);
+        ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
         // First layer weights
         ArrayList<Double> w1Data = new ArrayList<>();
@@ -30,7 +30,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
             w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
         }
         Tensor t1 = new Tensor(w1Data, new int[]{1, 5, 4});
-        ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1, false, false);
+        ComputationalNode w1 = new MultiplicationNode(true, false, t1, false);
         ComputationalNode a1 = this.addEdge(input, w1, true);
         ComputationalNode a1TanH = this.addEdge(a1, new Tanh(), true);
         // Second layer weights
@@ -40,7 +40,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
             w2Data.add(-0.01 + (0.02 * rand2.nextDouble()));
         }
         Tensor t2 = new Tensor(w2Data, new int[]{1, 5, 20});
-        ComputationalNode w2 = new ComputationalNode(true, false, "*", null, t2, false, false);
+        ComputationalNode w2 = new MultiplicationNode(true, false, t2, false);
         ComputationalNode a2 = this.addEdge(a1TanH, w2, true);
         ComputationalNode a2Sigmoid = this.addEdge(a2, new Sigmoid(), true);
         // Output layer weights
@@ -50,7 +50,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
             w3Data.add(-0.01 + (0.02 * rand3.nextDouble()));
         }
         Tensor t3 = new Tensor(w3Data, new int[]{1, 21, 3});
-        ComputationalNode w3 = new ComputationalNode(true, false, "*", null, t3, false, false);
+        ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
         ComputationalNode a3 = this.addEdge(a2Sigmoid, w3, false);
         this.addEdge(a3, new Softmax(), false);
         // Training

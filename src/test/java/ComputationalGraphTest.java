@@ -54,8 +54,8 @@ public class ComputationalGraphTest {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
             public void train(Tensor trainSet, Parameter parameters) {
-                ComputationalNode a0 = new ComputationalNode(false, false, "+", null, null, false, false);
-                ComputationalNode a1 = new ComputationalNode(true, false, "+", null, null, false, false);
+                ComputationalNode a0 = new ComputationalNode(false, null, false);
+                ComputationalNode a1 = new ComputationalNode(true, null, false);
                 ComputationalNode a2 = this.addEdge(a0, a1, false);
                 this.addEdge(a2, new Softmax(), false);
                 List<Double> data = new ArrayList<>();
@@ -90,7 +90,7 @@ public class ComputationalGraphTest {
             @Override
             public void train(Tensor trainSet, Parameter parameters) {
                 ArrayList<ComputationalNode> nodes = new ArrayList<>();
-                ComputationalNode input = new ComputationalNode(false, "*", false, false);
+                ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
                 ArrayList<Double> w1Data = new ArrayList<>();
                 Random rand1 = new Random(1);
@@ -98,27 +98,27 @@ public class ComputationalGraphTest {
                     w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 Tensor t1 = new Tensor(w1Data, new int[]{1, 5, 4});
-                ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1, false, false);
+                ComputationalNode w1 = new MultiplicationNode(true, false, t1, false);
                 ComputationalNode a1 = this.addEdge(input, w1, false);
                 ComputationalNode a1TanH = this.addEdge(a1, new Tanh(), false);
                 nodes.add(a1TanH);
-                ComputationalNode x1 = new ComputationalNode(false, "*", false, false);
+                ComputationalNode x1 = new MultiplicationNode(false, false, false);
                 ArrayList<Double> v1Data = new ArrayList<>();
                 for (int i = 0; i < 5 * 4; i++) {
                     v1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 Tensor k1 = new Tensor(v1Data, new int[]{1, 5, 4});
-                ComputationalNode v1 = new ComputationalNode(true, false, "*", null, k1, false, false);
+                ComputationalNode v1 = new MultiplicationNode(true, false, k1, false);
                 ComputationalNode m1 = this.addEdge(x1, v1, false);
                 ComputationalNode m1TanH = this.addEdge(m1, new Tanh(), false);
                 nodes.add(m1TanH);
-                ComputationalNode concatenatedNode = this.concatEdges(nodes);
+                ConcatenatedNode concatenatedNode = (ConcatenatedNode) this.concatEdges(nodes);
                 ArrayList<Double> w3Data = new ArrayList<>();
                 for (int i = 0; i < 8 * 3; i++) {
                     w3Data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 Tensor t3 = new Tensor(w3Data, new int[]{1, 8, 3});
-                ComputationalNode w3 = new ComputationalNode(true, false, "*", null, t3, false, false);
+                ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
                 ComputationalNode a3 = this.addEdge(concatenatedNode, w3, false);
                 this.addEdge(a3, new Softmax(), false);
                 ArrayList<Double> data = new ArrayList<>();
@@ -126,6 +126,10 @@ public class ComputationalGraphTest {
                     data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 input.setValue(new Tensor(data, new int[]{1, 1, 5}));
+                data = new ArrayList<>();
+                for (int i = 0; i < 5; i++) {
+                    data.add(-0.01 + (0.02 * rand1.nextDouble()));
+                }
                 x1.setValue(new Tensor(data, new int[]{1, 1, 5}));
                 ArrayList<Integer> classList = new ArrayList<>();
                 classList.add(1);
@@ -151,8 +155,7 @@ public class ComputationalGraphTest {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
             public void train(Tensor trainSet, Parameter parameters) {
-                ArrayList<ComputationalNode> nodes = new ArrayList<>();
-                ComputationalNode input = new ComputationalNode(false, "*", false, false);
+                ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
                 ArrayList<Double> w1Data = new ArrayList<>();
                 Random rand1 = new Random(1);
@@ -160,7 +163,7 @@ public class ComputationalGraphTest {
                     w1Data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 Tensor t1 = new Tensor(w1Data, new int[]{1, 5, 4});
-                ComputationalNode w1 = new ComputationalNode(true, false, "*", null, t1, false, false);
+                ComputationalNode w1 = new MultiplicationNode(true, false, t1, false);
                 ComputationalNode a1 = this.addEdge(input, w1, false);
                 ComputationalNode a1TanH = this.addEdge(a1, new Tanh(), false);
                 ArrayList<Double> w2Data = new ArrayList<>();
@@ -169,7 +172,7 @@ public class ComputationalGraphTest {
                     w2Data.add(-0.01 + (0.02 * rand1.nextDouble()));
                 }
                 Tensor t2 = new Tensor(w2Data, new int[]{1, 1, 4});
-                ComputationalNode w2 = new ComputationalNode(true, false, "*", null, t2, false, true);
+                ComputationalNode w2 = new MultiplicationNode(true, false, t2, true);
                 ComputationalNode a2 = this.addEdge(a1TanH, w2, false);
                 this.addEdge(a2, new Softmax(), false);
                 ArrayList<Double> data = new ArrayList<>();

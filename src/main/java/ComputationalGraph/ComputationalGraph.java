@@ -24,11 +24,11 @@ public abstract class ComputationalGraph implements Serializable {
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
         if (second instanceof Function) {
-            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null, false, false);
-        } else if (second instanceof ComputationalNode) {
-            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null, false, ((ComputationalNode) second).isHadamard());
+            newNode = new ComputationalNode(false, (Function) second, isBiased);
+        } else if (second instanceof MultiplicationNode) {
+            newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard());
         } else {
-            throw new IllegalArgumentException("Invalid type for 'second'. Must be a ComputationalNode or FunctionType.");
+            newNode = new ComputationalNode(false, null, isBiased);
         }
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
@@ -40,7 +40,7 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     public ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes) {
-        ComputationalNode newNode = new ComputationalNode();
+        ComputationalNode newNode = new ConcatenatedNode();
         for (ComputationalNode node : nodes) {
             nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
             reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(node);
@@ -185,14 +185,8 @@ public abstract class ComputationalGraph implements Serializable {
             }
             throw new NullPointerException("Backward and/or derivative values are null");
         } else {
-            if (child.isConcatenatedNode()) {
-                int index = -1;
-                for (int i = 0; i < reverseChildren.size(); i++) {
-                    if (reverseChildren.get(i).equals(node)) {
-                        index = i;
-                        break;
-                    }
-                }
+            if (child instanceof ConcatenatedNode) {
+                int index = ((ConcatenatedNode) child).getIndex(node);
                 int[] startIndexes = new int[child.getBackward().getShape().length];
                 int[] endIndexes = new int[child.getBackward().getShape().length];
                 for (int i = 0; i < startIndexes.length - 1; i++) {
@@ -203,52 +197,47 @@ public abstract class ComputationalGraph implements Serializable {
                 startIndexes[startIndexes.length - 1] = blockSize * index;
                 endIndexes[endIndexes.length - 1] = blockSize * (index + 1);
                 return child.getBackward().partial(startIndexes, endIndexes);
-            } else if (child.getOperator() != null) {
-                ComputationalNode right = reverseChildren.get(1);
-                switch (child.getOperator()) {
-                    case "*":
-                        Tensor backward = child.getBackward();
-                        if (left == node) {
-                            Tensor rightValue = right.getValue();
-                            if (child.isHadamard()) {
-                                return rightValue.hadamardProduct(backward);
-                            }
-                            if (!child.isBiased()) {
-                                if (backward != null && rightValue != null) {
-                                    return backward.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
-                                }
-                                throw new NullPointerException("Backward and/or right child values are null");
-                            }
-                            int[] endIndexes = new int[backward.getShape().length];
-                            for (int i = 0; i < endIndexes.length; i++) {
-                                if (i == endIndexes.length - 1) {
-                                    endIndexes[i] = backward.getShape()[i] - 1;
-                                } else {
-                                    endIndexes[i] = backward.getShape()[i];
-                                }
-                            }
-                            Tensor partial = backward.partial(new int[backward.getShape().length], endIndexes);
-                            if (partial != null && rightValue != null) {
-                                return partial.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
+            } else {
+                if (child instanceof MultiplicationNode) {
+                    ComputationalNode right = reverseChildren.get(1);
+                    Tensor backward = child.getBackward();
+                    if (left == node) {
+                        Tensor rightValue = right.getValue();
+                        if (((MultiplicationNode) child).isHadamard()) {
+                            return rightValue.hadamardProduct(backward);
+                        }
+                        if (!child.isBiased()) {
+                            if (backward != null && rightValue != null) {
+                                return backward.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                             }
                             throw new NullPointerException("Backward and/or right child values are null");
                         }
-                        Tensor leftValue = left.getValue();
-                        if (child.isHadamard()) {
-                            return leftValue.hadamardProduct(backward);
+                        int[] endIndexes = new int[backward.getShape().length];
+                        for (int i = 0; i < endIndexes.length; i++) {
+                            if (i == endIndexes.length - 1) {
+                                endIndexes[i] = backward.getShape()[i] - 1;
+                            } else {
+                                endIndexes[i] = backward.getShape()[i];
+                            }
                         }
-                        if (leftValue != null && backward != null) {
-                            return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
+                        Tensor partial = backward.partial(new int[backward.getShape().length], endIndexes);
+                        if (partial != null && rightValue != null) {
+                            return partial.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                         }
-                        throw new NullPointerException("Backward and/or left child values are null");
-                    case "+":
-                        return child.getBackward();
-                    default:
-                        throw new IllegalArgumentException("Unsupported operator: " + child.getOperator());
+                        throw new NullPointerException("Backward and/or right child values are null");
+                    }
+                    Tensor leftValue = left.getValue();
+                    if (((MultiplicationNode) child).isHadamard()) {
+                        return leftValue.hadamardProduct(backward);
+                    }
+                    if (leftValue != null && backward != null) {
+                        return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
+                    }
+                    throw new NullPointerException("Backward and/or left child values are null");
                 }
+                return child.getBackward();
             }
         }
-        return null;
     }
 
     /**
@@ -367,39 +356,36 @@ public abstract class ComputationalGraph implements Serializable {
                                 getBiased(currentNode);
                             }
                             child.setValue(currentNode.getValue());
+                            if (child instanceof ConcatenatedNode) {
+                                ((ConcatenatedNode) child).addNode(currentNode);
+                            }
                         }
                     } else {
-                        if (child.isConcatenatedNode()) {
+                        if (child instanceof ConcatenatedNode) {
                             child.setValue(child.getValue().concat(currentNode.getValue()));
-                        } else if (child.getFunction() == null && child.getOperator() != null) {
-                            switch (child.getOperator()) {
-                                case "*": {
-                                    if (currentNode.isBiased()) {
-                                        getBiased(currentNode);
-                                    }
-                                    Tensor childValue = child.getValue();
-                                    Tensor currentValue = currentNode.getValue();
-                                    if (childValue != null && currentValue != null) {
-                                        if (child.isHadamard()) {
-                                            child.setValue(childValue.hadamardProduct(currentValue));
-                                        } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
-                                            child.setValue(childValue.multiply(currentValue));
-                                        } else {
-                                            child.setValue(currentValue.multiply(childValue));
-                                        }
-                                    }
-                                    break;
+                            ((ConcatenatedNode) child).addNode(currentNode);
+                        } else {
+                            if (child instanceof MultiplicationNode) {
+                                if (currentNode.isBiased()) {
+                                    getBiased(currentNode);
                                 }
-                                case "+": {
-                                    Tensor result = child.getValue();
-                                    Tensor currentValue = currentNode.getValue();
-                                    if (result != null && currentValue != null) {
-                                        child.setValue(result.add(currentValue));
+                                Tensor childValue = child.getValue();
+                                Tensor currentValue = currentNode.getValue();
+                                if (childValue != null && currentValue != null) {
+                                    if (((MultiplicationNode) child).isHadamard()) {
+                                        child.setValue(childValue.hadamardProduct(currentValue));
+                                    } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
+                                        child.setValue(childValue.multiply(currentValue));
+                                    } else {
+                                        child.setValue(currentValue.multiply(childValue));
                                     }
-                                    break;
                                 }
-                                default:
-                                    throw new IllegalArgumentException("Unsupported operator: " + child.getOperator());
+                            } else {
+                                Tensor result = child.getValue();
+                                Tensor currentValue = currentNode.getValue();
+                                if (result != null && currentValue != null) {
+                                    child.setValue(result.add(currentValue));
+                                }
                             }
                         }
                     }
