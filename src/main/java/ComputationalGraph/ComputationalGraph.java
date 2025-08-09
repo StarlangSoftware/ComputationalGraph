@@ -24,9 +24,9 @@ public abstract class ComputationalGraph implements Serializable {
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
         if (second instanceof Function) {
-            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null, false);
+            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null, false, false);
         } else if (second instanceof ComputationalNode) {
-            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null, false);
+            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null, false, ((ComputationalNode) second).isHadamard());
         } else {
             throw new IllegalArgumentException("Invalid type for 'second'. Must be a ComputationalNode or FunctionType.");
         }
@@ -207,16 +207,18 @@ public abstract class ComputationalGraph implements Serializable {
                 ComputationalNode right = reverseChildren.get(1);
                 switch (child.getOperator()) {
                     case "*":
+                        Tensor backward = child.getBackward();
                         if (left == node) {
+                            Tensor rightValue = right.getValue();
+                            if (child.isHadamard()) {
+                                return rightValue.hadamardProduct(backward);
+                            }
                             if (!child.isBiased()) {
-                                Tensor backward = child.getBackward();
-                                Tensor rightValue = right.getValue();
                                 if (backward != null && rightValue != null) {
                                     return backward.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                                 }
                                 throw new NullPointerException("Backward and/or right child values are null");
                             }
-                            Tensor backward = child.getBackward();
                             int[] endIndexes = new int[backward.getShape().length];
                             for (int i = 0; i < endIndexes.length; i++) {
                                 if (i == endIndexes.length - 1) {
@@ -226,14 +228,15 @@ public abstract class ComputationalGraph implements Serializable {
                                 }
                             }
                             Tensor partial = backward.partial(new int[backward.getShape().length], endIndexes);
-                            Tensor rightValue = right.getValue();
                             if (partial != null && rightValue != null) {
                                 return partial.multiply(rightValue.transpose(transposeAxes(rightValue.getShape().length)));
                             }
                             throw new NullPointerException("Backward and/or right child values are null");
                         }
                         Tensor leftValue = left.getValue();
-                        Tensor backward = child.getBackward();
+                        if (child.isHadamard()) {
+                            return leftValue.hadamardProduct(backward);
+                        }
                         if (leftValue != null && backward != null) {
                             return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
                         }
@@ -353,9 +356,7 @@ public abstract class ComputationalGraph implements Serializable {
             if (children != null) {
                 for (ComputationalNode child : children) {
                     if (child.getValue() == null) {
-                        if (child.isConcatenatedNode()) {
-                            child.setValue(currentNode.getValue());
-                        } else if (child.getFunction() != null) {
+                        if (child.getFunction() != null) {
                             Function function = child.getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (currentValue != null) {
@@ -379,7 +380,9 @@ public abstract class ComputationalGraph implements Serializable {
                                     Tensor childValue = child.getValue();
                                     Tensor currentValue = currentNode.getValue();
                                     if (childValue != null && currentValue != null) {
-                                        if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
+                                        if (child.isHadamard()) {
+                                            child.setValue(childValue.hadamardProduct(currentValue));
+                                        } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
                                             child.setValue(childValue.multiply(currentValue));
                                         } else {
                                             child.setValue(currentValue.multiply(childValue));
