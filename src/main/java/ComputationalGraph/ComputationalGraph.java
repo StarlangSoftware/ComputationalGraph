@@ -24,9 +24,9 @@ public abstract class ComputationalGraph implements Serializable {
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
         if (second instanceof Function) {
-            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null);
+            newNode = new ComputationalNode(false, isBiased, null, (Function) second, null, false);
         } else if (second instanceof ComputationalNode) {
-            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null);
+            newNode = new ComputationalNode(false, isBiased, ((ComputationalNode) second).getOperator(), null, null, false);
         } else {
             throw new IllegalArgumentException("Invalid type for 'second'. Must be a ComputationalNode or FunctionType.");
         }
@@ -39,6 +39,14 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
+    public ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes) {
+        ComputationalNode newNode = new ComputationalNode();
+        for (ComputationalNode node : nodes) {
+            nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
+            reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(node);
+        }
+        return newNode;
+    }
 
     /**
      * Recursive helper function to perform depth-first search for topological sorting.
@@ -177,8 +185,26 @@ public abstract class ComputationalGraph implements Serializable {
             }
             throw new NullPointerException("Backward and/or derivative values are null");
         } else {
-            ComputationalNode right = reverseChildren.get(1);
-            if (child.getOperator() != null) {
+            if (child.isConcatenatedNode()) {
+                int index = -1;
+                for (int i = 0; i < reverseChildren.size(); i++) {
+                    if (reverseChildren.get(i).equals(node)) {
+                        index = i;
+                        break;
+                    }
+                }
+                int[] startIndexes = new int[child.getBackward().getShape().length];
+                int[] endIndexes = new int[child.getBackward().getShape().length];
+                for (int i = 0; i < startIndexes.length - 1; i++) {
+                    startIndexes[i] = 0;
+                    endIndexes[i] = child.getBackward().getShape()[i];
+                }
+                int blockSize = child.getBackward().getShape()[child.getBackward().getShape().length - 1] / reverseChildren.size();
+                startIndexes[startIndexes.length - 1] = blockSize * index;
+                endIndexes[endIndexes.length - 1] = blockSize * (index + 1);
+                return child.getBackward().partial(startIndexes, endIndexes);
+            } else if (child.getOperator() != null) {
+                ComputationalNode right = reverseChildren.get(1);
                 switch (child.getOperator()) {
                     case "*":
                         if (left == node) {
@@ -327,7 +353,9 @@ public abstract class ComputationalGraph implements Serializable {
             if (children != null) {
                 for (ComputationalNode child : children) {
                     if (child.getValue() == null) {
-                        if (child.getFunction() != null) {
+                        if (child.isConcatenatedNode()) {
+                            child.setValue(currentNode.getValue());
+                        } else if (child.getFunction() != null) {
                             Function function = child.getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (currentValue != null) {
@@ -340,7 +368,9 @@ public abstract class ComputationalGraph implements Serializable {
                             child.setValue(currentNode.getValue());
                         }
                     } else {
-                        if (child.getFunction() == null && child.getOperator() != null) {
+                        if (child.isConcatenatedNode()) {
+                            child.setValue(child.getValue().concat(currentNode.getValue()));
+                        } else if (child.getFunction() == null && child.getOperator() != null) {
                             switch (child.getOperator()) {
                                 case "*": {
                                     if (currentNode.isBiased()) {

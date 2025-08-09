@@ -11,6 +11,7 @@ public class ComputationalNode implements Serializable {
     private final boolean isBiased;
     private final String operator;
     private final Function function;
+    private final boolean isConcatenatedNode;
 
     /**
      * Initializes a ComputationalNode.
@@ -20,27 +21,32 @@ public class ComputationalNode implements Serializable {
      * @param function The function (e.g., activation like SIGMOID)
      * @param value The tensor value associated with the node (optional)
      */
-    public ComputationalNode(boolean learnable, boolean isBiased, String operator, Function function, Tensor value) {
+    public ComputationalNode(boolean learnable, boolean isBiased, String operator, Function function, Tensor value, boolean isConcatenatedNode) {
         this.value = value;
         this.backward = null;
         this.learnable = learnable;
         this.isBiased = isBiased;
         this.operator = operator;
         this.function = function;
+        this.isConcatenatedNode = isConcatenatedNode;
     }
 
     /**
      * Constructor overload for function type initialization
      */
     public ComputationalNode(boolean learnable, Function function, boolean isBiased) {
-        this(learnable, isBiased, null, function, null);
+        this(learnable, isBiased, null, function, null, false);
     }
 
     /**
      * Constructor overload for operator initialization
      */
     public ComputationalNode(boolean learnable, String operator, boolean isBiased) {
-        this(learnable, isBiased, operator, null, null);
+        this(learnable, isBiased, operator, null, null, false);
+    }
+
+    public ComputationalNode() {
+        this(false, false, null, null, null, true);
     }
 
     @Override
@@ -50,16 +56,25 @@ public class ComputationalNode implements Serializable {
             details.append("Function: ").append(function);
         }
         if (operator != null) {
-            if (details.length() > 0) details.append(", ");
+            if (details.length() > 0) {
+                details.append(", ");
+            }
             details.append("Operator: ").append(operator);
         }
         if (value != null) {
-            if (details.length() > 0) details.append(", ");
-            details.append("Value Shape: [").append(value.getShape()[0]).append(", ").append(value.getShape()[1]).append("]");
+            if (details.length() > 0) {
+                details.append(", ");
+            }
+            details.append("Value Shape: [").append(value.getShape()[0]);
+            for (int i = 1; i < value.getShape().length; i++) {
+                details.append(", ").append(value.getShape()[i]);
+            }
+            details.append("]");
         }
         if (details.length() > 0) details.append(", ");
         details.append("is learnable: ").append(learnable);
         details.append(", is biased: ").append(isBiased);
+        details.append(", is concatenated: ").append(isConcatenatedNode);
         return "Node(" + details + ")";
     }
 
@@ -110,5 +125,9 @@ public class ComputationalNode implements Serializable {
 
     public void setBackward(Tensor backward) {
         this.backward = backward;
+    }
+
+    public boolean isConcatenatedNode() {
+        return isConcatenatedNode;
     }
 }
