@@ -187,16 +187,21 @@ public abstract class ComputationalGraph implements Serializable {
         } else {
             if (child instanceof ConcatenatedNode) {
                 int index = ((ConcatenatedNode) child).getIndex(node);
-                int[] startIndexes = new int[child.getBackward().getShape().length];
-                int[] endIndexes = new int[child.getBackward().getShape().length];
-                for (int i = 0; i < startIndexes.length - 1; i++) {
-                    startIndexes[i] = 0;
-                    endIndexes[i] = child.getBackward().getShape()[i];
-                }
                 int blockSize = child.getBackward().getShape()[child.getBackward().getShape().length - 1] / reverseChildren.size();
-                startIndexes[startIndexes.length - 1] = blockSize * index;
-                endIndexes[endIndexes.length - 1] = blockSize * (index + 1);
-                return child.getBackward().partial(startIndexes, endIndexes);
+                ArrayList<Double> values = (ArrayList<Double>) child.getBackward().getData(), newValues = new ArrayList<>();
+                int[] shape = new int[child.getBackward().getShape().length];
+                int size = 1;
+                for (int i = 0; i < shape.length - 1; i++) {
+                    shape[i] = child.getBackward().getShape()[i];
+                    size *= shape[i];
+                }
+                shape[shape.length - 1] = blockSize;
+                for (int i = 0; i < size; i++) {
+                    for (int j = 0; j < blockSize; j++) {
+                        newValues.add(values.get((i * child.getBackward().getShape()[child.getBackward().getShape().length - 1]) + (index * blockSize + j)));
+                    }
+                }
+                return new Tensor(newValues, shape);
             } else {
                 if (child instanceof MultiplicationNode) {
                     ComputationalNode right = reverseChildren.get(1);
@@ -249,12 +254,9 @@ public abstract class ComputationalGraph implements Serializable {
     private void calculateRMinusY(ComputationalNode output, double learningRate, ArrayList<Integer> classLabelIndex) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> outputValues = (ArrayList<Double>) output.getValue().getData();
-        int shapeSize = 1;
-        for (int i = 1; i < output.getValue().getShape().length; i++) {
-            shapeSize *= output.getValue().getShape()[i];
-        }
+        int lastDimension = output.getValue().getShape()[output.getValue().getShape().length - 1];
         for (int i = 0; i < outputValues.size(); i++) {
-            if (i % output.getValue().getShape()[output.getValue().getShape().length - 1] == classLabelIndex.get(i / shapeSize)) {
+            if (i % lastDimension == classLabelIndex.get(i / lastDimension)) {
                 values.add((1 - outputValues.get(i)) * learningRate);
             } else {
                 values.add(-outputValues.get(i) * learningRate);

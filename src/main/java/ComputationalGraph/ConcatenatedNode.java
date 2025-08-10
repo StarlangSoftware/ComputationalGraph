@@ -8,7 +8,7 @@ public class ConcatenatedNode extends ComputationalNode implements Serializable 
     private final HashMap<ComputationalNode, Integer> indexMap;
 
     public ConcatenatedNode() {
-        super(false, false, null ,null);
+        super(false, false, null, null);
         this.indexMap = new HashMap<>();
     }
 
