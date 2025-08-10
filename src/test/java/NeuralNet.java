@@ -95,7 +95,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+    protected ArrayList<Integer> getClassLabels(ComputationalNode outputNode) {
         ArrayList<Integer> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {

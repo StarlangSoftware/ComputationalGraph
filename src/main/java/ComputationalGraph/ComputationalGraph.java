@@ -19,7 +19,7 @@ public abstract class ComputationalGraph implements Serializable {
 
     public abstract void train(Tensor trainSet, Parameter parameters);
     public abstract ClassificationPerformance test(Tensor testSet);
-    protected abstract ArrayList<Integer> getClassLabes(ComputationalNode outputNode);
+    protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
 
     public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
@@ -394,7 +394,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        return getClassLabes(outputNode);
+        return getClassLabels(outputNode);
     }
 
     /**

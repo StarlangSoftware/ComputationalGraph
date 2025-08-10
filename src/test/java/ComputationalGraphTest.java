@@ -77,7 +77,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+            protected ArrayList<Integer> getClassLabels(ComputationalNode outputNode) {
                 return null;
             }
         };
@@ -143,7 +143,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+            protected ArrayList<Integer> getClassLabels(ComputationalNode outputNode) {
                 return null;
             }
         };
@@ -192,7 +192,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            protected ArrayList<Integer> getClassLabes(ComputationalNode outputNode) {
+            protected ArrayList<Integer> getClassLabels(ComputationalNode outputNode) {
                 return null;
             }
         };
