@@ -28,7 +28,7 @@ public abstract class ComputationalGraph implements Serializable {
         } else if (second instanceof MultiplicationNode) {
             newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard());
         } else {
-            newNode = new ComputationalNode(false, null, isBiased);
+            throw new IllegalArgumentException("Illegal Type of Object: second");
         }
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
@@ -36,6 +36,15 @@ public abstract class ComputationalGraph implements Serializable {
             nodeMap.computeIfAbsent((ComputationalNode) second, k -> new ArrayList<>()).add(newNode);
             reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add((ComputationalNode) second);
         }
+        return newNode;
+    }
+
+    public ComputationalNode addAdditionEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
+        ComputationalNode newNode = new ComputationalNode(false, null, isBiased);
+        nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
+        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
+        nodeMap.computeIfAbsent(second, k -> new ArrayList<>()).add(newNode);
+        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(second);
         return newNode;
     }
 

@@ -56,7 +56,7 @@ public class ComputationalGraphTest {
             public void train(Tensor trainSet, Parameter parameters) {
                 ComputationalNode a0 = new ComputationalNode(false, null, false);
                 ComputationalNode a1 = new ComputationalNode(true, null, false);
-                ComputationalNode a2 = this.addEdge(a0, a1, false);
+                ComputationalNode a2 = this.addAdditionEdge(a0, a1, false);
                 this.addEdge(a2, new Softmax(), false);
                 List<Double> data = new ArrayList<>();
                 Random rand = new Random(1);
