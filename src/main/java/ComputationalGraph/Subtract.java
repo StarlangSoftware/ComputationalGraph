@@ -18,6 +18,14 @@ public class Subtract implements Function, Serializable {
 
     @Override
     public Tensor derivative(Tensor matrix) {
-        return calculate(matrix);
+        ArrayList<Double> values = new ArrayList<>();
+        int size = 1;
+        for (int i = 0; i < matrix.getShape().length; i++) {
+            size *= matrix.getShape()[i];
+        }
+        for (int i = 0; i < size; i++) {
+            values.add(-1.0);
+        }
+        return new Tensor(values, matrix.getShape());
     }
 }
