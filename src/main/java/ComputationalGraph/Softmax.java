@@ -44,8 +44,8 @@ public class Softmax implements Function, Serializable {
             double v1 = oldValues.get(i);
             int startIndex = i / lastDimensionSize;
             for (int j = 0; j < lastDimensionSize; j++) {
-                double v2 = oldValues.get(startIndex + j);
-                if (v1 % lastDimensionSize == j) {
+                double v2 = oldValues.get(lastDimensionSize * startIndex + j);
+                if (i % lastDimensionSize == j) {
                     values.add(v1 * (1 - v2));
                 } else {
                     values.add(-v1 * v2);
