@@ -21,7 +21,7 @@ public abstract class ComputationalGraph implements Serializable {
     public abstract ClassificationPerformance test(Tensor testSet);
     protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
 
-    public ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
+    protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
         if (second instanceof Function) {
             newNode = new ComputationalNode(false, (Function) second, isBiased);
@@ -39,7 +39,7 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
-    public ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
+    protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
         ComputationalNode newNode = new MultiplicationNode(false, isBiased, isHadamard);
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
@@ -48,7 +48,7 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
-    public ComputationalNode addAdditionEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
+    protected ComputationalNode addAdditionEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
         ComputationalNode newNode = new ComputationalNode(false, null, isBiased);
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
@@ -57,7 +57,7 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
-    public ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes) {
+    protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes) {
         ComputationalNode newNode = new ConcatenatedNode();
         for (ComputationalNode node : nodes) {
             nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
