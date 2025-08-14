@@ -361,51 +361,52 @@ public abstract class ComputationalGraph implements Serializable {
         ComputationalNode outputNode = sortedNodes.getFirst();
         while (sortedNodes.size() > 1) {
             ComputationalNode currentNode = sortedNodes.removeLast();
+            boolean isBiased = false;
             ArrayList<ComputationalNode> children = nodeMap.get(currentNode);
-            if (children != null) {
-                for (ComputationalNode child : children) {
-                    if (child.getValue() == null) {
-                        if (child.getFunction() != null) {
-                            Function function = child.getFunction();
-                            Tensor currentValue = currentNode.getValue();
-                            if (currentValue != null) {
-                                child.setValue(function.calculate(currentValue));
-                            }
-                        } else {
-                            if (currentNode.isBiased()) {
-                                getBiased(currentNode);
-                            }
-                            child.setValue(currentNode.getValue());
-                            if (child instanceof ConcatenatedNode) {
-                                ((ConcatenatedNode) child).addNode(currentNode);
-                            }
+            for (ComputationalNode child : children) {
+                if (child.getValue() == null) {
+                    if (child.getFunction() != null) {
+                        Function function = child.getFunction();
+                        Tensor currentValue = currentNode.getValue();
+                        if (currentValue != null) {
+                            child.setValue(function.calculate(currentValue));
                         }
                     } else {
+                        if (!isBiased && currentNode.isBiased()) {
+                            getBiased(currentNode);
+                            isBiased = true;
+                        }
+                        child.setValue(currentNode.getValue());
                         if (child instanceof ConcatenatedNode) {
-                            child.setValue(child.getValue().concat(currentNode.getValue()));
                             ((ConcatenatedNode) child).addNode(currentNode);
+                        }
+                    }
+                } else {
+                    if (child instanceof ConcatenatedNode) {
+                        child.setValue(child.getValue().concat(currentNode.getValue()));
+                        ((ConcatenatedNode) child).addNode(currentNode);
+                    } else {
+                        if (child instanceof MultiplicationNode) {
+                            if (!isBiased && currentNode.isBiased()) {
+                                getBiased(currentNode);
+                                isBiased = true;
+                            }
+                            Tensor childValue = child.getValue();
+                            Tensor currentValue = currentNode.getValue();
+                            if (childValue != null && currentValue != null) {
+                                if (((MultiplicationNode) child).isHadamard()) {
+                                    child.setValue(childValue.hadamardProduct(currentValue));
+                                } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
+                                    child.setValue(childValue.multiply(currentValue));
+                                } else {
+                                    child.setValue(currentValue.multiply(childValue));
+                                }
+                            }
                         } else {
-                            if (child instanceof MultiplicationNode) {
-                                if (currentNode.isBiased()) {
-                                    getBiased(currentNode);
-                                }
-                                Tensor childValue = child.getValue();
-                                Tensor currentValue = currentNode.getValue();
-                                if (childValue != null && currentValue != null) {
-                                    if (((MultiplicationNode) child).isHadamard()) {
-                                        child.setValue(childValue.hadamardProduct(currentValue));
-                                    } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
-                                        child.setValue(childValue.multiply(currentValue));
-                                    } else {
-                                        child.setValue(currentValue.multiply(childValue));
-                                    }
-                                }
-                            } else {
-                                Tensor result = child.getValue();
-                                Tensor currentValue = currentNode.getValue();
-                                if (result != null && currentValue != null) {
-                                    child.setValue(result.add(currentValue));
-                                }
+                            Tensor result = child.getValue();
+                            Tensor currentValue = currentNode.getValue();
+                            if (result != null && currentValue != null) {
+                                child.setValue(result.add(currentValue));
                             }
                         }
                     }
