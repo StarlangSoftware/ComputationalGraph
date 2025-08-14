@@ -26,7 +26,7 @@ public abstract class ComputationalGraph implements Serializable {
         if (second instanceof Function) {
             newNode = new ComputationalNode(false, (Function) second, isBiased);
         } else if (second instanceof MultiplicationNode) {
-            newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard());
+            newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard(), first);
         } else {
             throw new IllegalArgumentException("Illegal Type of Object: second");
         }
@@ -40,7 +40,7 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
-        ComputationalNode newNode = new MultiplicationNode(false, isBiased, isHadamard);
+        ComputationalNode newNode = new MultiplicationNode(false, isBiased, isHadamard, first);
         nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
         reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
         nodeMap.computeIfAbsent(second, k -> new ArrayList<>()).add(newNode);
@@ -388,7 +388,7 @@ public abstract class ComputationalGraph implements Serializable {
                                 if (childValue != null && currentValue != null) {
                                     if (((MultiplicationNode) child).isHadamard()) {
                                         child.setValue(childValue.hadamardProduct(currentValue));
-                                    } else if (childValue.getShape()[childValue.getShape().length - 1] == currentValue.getShape()[currentValue.getShape().length - 2]) {
+                                    } else if (!((MultiplicationNode) child).getPriorityNode().equals(currentNode)) {
                                         child.setValue(childValue.multiply(currentValue));
                                     } else {
                                         child.setValue(currentValue.multiply(childValue));
