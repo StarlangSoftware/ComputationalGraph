@@ -12,6 +12,10 @@ public class ConcatenatedNode extends ComputationalNode implements Serializable 
         this.indexMap = new HashMap<>();
     }
 
+    public void clear() {
+        this.indexMap.clear();
+    }
+
     public int getIndex(ComputationalNode node) {
         return indexMap.get(node);
     }
