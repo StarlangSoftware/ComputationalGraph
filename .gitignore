@@ -3,3 +3,4 @@
 
 # Ignore the .vscode directory and all its contents
 ./.vscode/
+/target/
