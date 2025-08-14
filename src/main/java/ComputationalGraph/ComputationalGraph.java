@@ -112,6 +112,9 @@ public abstract class ComputationalGraph implements Serializable {
         if (!node.isLearnable()) {
             node.setValue(null);
         }
+        if (node instanceof ConcatenatedNode) {
+            ((ConcatenatedNode) node).clear();
+        }
         node.setBackward(null);
         if (nodeMap.containsKey(node)) {
             for (ComputationalNode child : nodeMap.get(node)) {
