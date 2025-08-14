@@ -32,26 +32,21 @@ public class Softmax implements Function, Serializable {
 
     @Override
     public Tensor derivative(Tensor tensor, Tensor backward) {
-        int[] shape = new int[tensor.getShape().length];
-        if (tensor.getShape().length - 1 >= 0) {
-            System.arraycopy(tensor.getShape(), 1, shape, 0, tensor.getShape().length - 1);
-        }
         int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
-        shape[shape.length - 1] = lastDimensionSize;
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
-        for (int i = 0; i < oldValues.size(); i++) {
-            double v1 = oldValues.get(i);
-            int startIndex = i / lastDimensionSize;
-            for (int j = 0; j < lastDimensionSize; j++) {
-                double v2 = oldValues.get(lastDimensionSize * startIndex + j);
-                if (i % lastDimensionSize == j) {
-                    values.add(v1 * (1 - v2));
-                } else {
-                    values.add(-v1 * v2);
+        ArrayList<Double> oldValuesTensor = (ArrayList<Double>) tensor.getData();
+        ArrayList<Double> oldValuesBackward = (ArrayList<Double>) backward.getData();
+        double total = 0.0;
+        for (int i = 0; i < oldValuesTensor.size(); i++) {
+            total += oldValuesTensor.get(i) * oldValuesBackward.get(i);
+            if ((i + 1) % lastDimensionSize == 0) {
+                int startIndex = i / lastDimensionSize;
+                for (int j = 0; j < lastDimensionSize; j++) {
+                    values.add(oldValuesBackward.get(startIndex * lastDimensionSize + j) - total);
                 }
+                total = 0.0;
             }
         }
-        return backward.multiply(new Tensor(values, shape));
+        return tensor.hadamardProduct(new Tensor(values, tensor.getShape()));
     }
 }
