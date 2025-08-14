@@ -31,7 +31,7 @@ public class Softmax implements Function, Serializable {
     }
 
     @Override
-    public Tensor derivative(Tensor tensor) {
+    public Tensor derivative(Tensor tensor, Tensor backward) {
         int[] shape = new int[tensor.getShape().length];
         if (tensor.getShape().length - 1 >= 0) {
             System.arraycopy(tensor.getShape(), 1, shape, 0, tensor.getShape().length - 1);
@@ -52,6 +52,6 @@ public class Softmax implements Function, Serializable {
                 }
             }
         }
-        return new Tensor(values, shape);
+        return backward.multiply(new Tensor(values, shape));
     }
 }

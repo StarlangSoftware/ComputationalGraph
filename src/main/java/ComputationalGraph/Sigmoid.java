@@ -26,13 +26,13 @@ public class Sigmoid implements Function, Serializable {
      * Assumes `tensor` is the output of sigmoid(x).
      */
     @Override
-    public Tensor derivative(Tensor tensor) {
+    public Tensor derivative(Tensor tensor, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) tensor.getData();
         for (double val : tensorValues) {
             double derivative = val * (1 - val);
             values.add(derivative);
         }
-        return new Tensor(values, tensor.getShape());
+        return backward.hadamardProduct(new Tensor(values, tensor.getShape()));
     }
 }

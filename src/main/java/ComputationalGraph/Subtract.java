@@ -17,7 +17,7 @@ public class Subtract implements Function, Serializable {
     }
 
     @Override
-    public Tensor derivative(Tensor matrix) {
+    public Tensor derivative(Tensor matrix, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         int size = 1;
         for (int i = 0; i < matrix.getShape().length; i++) {
@@ -26,6 +26,6 @@ public class Subtract implements Function, Serializable {
         for (int i = 0; i < size; i++) {
             values.add(-1.0);
         }
-        return new Tensor(values, matrix.getShape());
+        return backward.hadamardProduct(new Tensor(values, matrix.getShape()));
     }
 }

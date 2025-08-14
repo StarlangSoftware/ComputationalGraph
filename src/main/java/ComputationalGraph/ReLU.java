@@ -25,9 +25,9 @@ public class ReLU implements Function, Serializable {
      * Assumes input is the raw pre-activation tensor.
      */
     @Override
-    public Tensor derivative(Tensor tensor) {
+    public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
+        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
             if (oldValue > 0) {
                 values.add(1.0);
@@ -35,6 +35,6 @@ public class ReLU implements Function, Serializable {
                 values.add(0.0);
             }
         }
-        return new Tensor(values, tensor.getShape());
+        return backward.hadamardProduct(new Tensor(values, value.getShape()));
     }
 }

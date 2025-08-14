@@ -25,12 +25,12 @@ public class Tanh implements Function, Serializable {
      * Assumes input is tanh(x), not raw x.
      */
     @Override
-    public Tensor derivative(Tensor tensor) {
+    public Tensor derivative(Tensor tensor, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
         for (Double oldValue : oldValues) {
             values.add(1 - oldValue * oldValue);
         }
-        return new Tensor(values, tensor.getShape());
+        return backward.hadamardProduct(new Tensor(values, tensor.getShape()));
     }
 }
