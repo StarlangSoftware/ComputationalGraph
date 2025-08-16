@@ -17,8 +17,8 @@ public abstract class ComputationalGraph implements Serializable {
         this.inputNodes = new ArrayList<>();
     }
 
-    public abstract void train(Tensor trainSet, Parameter parameters);
-    public abstract ClassificationPerformance test(Tensor testSet);
+    public abstract void train(ArrayList<Tensor> trainSet, Parameter parameters);
+    public abstract ClassificationPerformance test(ArrayList<Tensor> testSet);
     protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {

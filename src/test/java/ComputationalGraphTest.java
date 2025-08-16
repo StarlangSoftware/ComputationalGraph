@@ -26,24 +26,27 @@ public class ComputationalGraphTest {
         }
         source.close();
         Collections.shuffle(dataSet, new Random(1));
-        List<Double> trainList = new ArrayList<>();
-        List<Double> testList = new ArrayList<>();
+        ArrayList<Tensor> trainList = new ArrayList<>();
+        ArrayList<Tensor> testList = new ArrayList<>();
         for (int i = 0; i < dataSet.size(); i++) {
+            ArrayList<Double> values = new ArrayList<>();
             if (i >= 120) {
                 for (int j = 0; j < dataSet.get(i).length - 1; j++) {
-                    testList.add(Double.parseDouble(dataSet.get(i)[j]));
+                    values.add(Double.parseDouble(dataSet.get(i)[j]));
                 }
-                testList.add(labelMap.get(dataSet.get(i)[dataSet.get(i).length - 1]) + 0.00);
+                values.add(labelMap.get(dataSet.get(i)[dataSet.get(i).length - 1]) + 0.00);
+                testList.add(new Tensor(values, new int[]{values.size()}));
             } else {
                 for (int j = 0; j < dataSet.get(i).length - 1; j++) {
-                    trainList.add(Double.parseDouble(dataSet.get(i)[j]));
+                    values.add(Double.parseDouble(dataSet.get(i)[j]));
                 }
-                trainList.add(labelMap.get(dataSet.get(i)[dataSet.get(i).length - 1]) + 0.00);
+                values.add(labelMap.get(dataSet.get(i)[dataSet.get(i).length - 1]) + 0.00);
+                trainList.add(new Tensor(values, new int[]{values.size()}));
             }
         }
         NeuralNet graph = new NeuralNet();
-        graph.train(new Tensor(trainList, new int[]{120, 5}), new NeuralNetParameter(100, 0.99, 0.1, 1));
-        ClassificationPerformance performance = graph.test(new  Tensor(testList, new int[]{30, 5}));
+        graph.train(trainList, new NeuralNetParameter(100, 0.99, 0.1, 1));
+        ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
         assertEquals(1.0, performance.getAccuracy(), 0.01);
     }
@@ -53,7 +56,7 @@ public class ComputationalGraphTest {
     public void test2() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(Tensor trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
                 ComputationalNode a0 = new ComputationalNode(false, null, false);
                 ComputationalNode a1 = new ComputationalNode(true, null, false);
                 ComputationalNode a2 = this.addAdditionEdge(a0, a1, false);
@@ -72,7 +75,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            public ClassificationPerformance test(Tensor testSet) {
+            public ClassificationPerformance test(ArrayList<Tensor> testSet) {
                 return null;
             }
 
@@ -88,7 +91,7 @@ public class ComputationalGraphTest {
     public void test3() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(Tensor trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
                 ArrayList<ComputationalNode> nodes = new ArrayList<>();
                 ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
@@ -138,7 +141,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            public ClassificationPerformance test(Tensor testSet) {
+            public ClassificationPerformance test(ArrayList<Tensor> testSet) {
                 return null;
             }
 
@@ -154,7 +157,7 @@ public class ComputationalGraphTest {
     public void test4() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(Tensor trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
                 ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
                 ArrayList<Double> w1Data = new ArrayList<>();
@@ -187,7 +190,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            public ClassificationPerformance test(Tensor testSet) {
+            public ClassificationPerformance test(ArrayList<Tensor> testSet) {
                 return null;
             }
 

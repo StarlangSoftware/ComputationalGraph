@@ -19,7 +19,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    public void train(Tensor trainSet, Parameter parameters) {
+    public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
         // Input Node
         ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
@@ -58,17 +58,14 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         for (int i = 0; i < ((NeuralNetParameter) parameters).getEpoch(); i++) {
             // Shuffle
             Random random = new Random(parameters.getSeed());
-            for (int j = 0; j < trainSet.getShape()[0]; j++) {
-                int i1 = random.nextInt(trainSet.getShape()[0]);
-                int i2 = random.nextInt(trainSet.getShape()[0]);
-                for (int k = 0; k < trainSet.getShape()[1]; k++) {
-                    double tmp = trainSet.getValue(new int[]{i1, k});
-                    trainSet.set(new int[]{i1, k}, trainSet.getValue(new int[]{i2, k}));
-                    trainSet.set(new int[]{i2, k}, tmp);
-                }
+            for (int j = 0; j < trainSet.size(); j++) {
+                int i1 = random.nextInt(trainSet.size());
+                int i2 = random.nextInt(trainSet.size());
+                Tensor tmp = trainSet.get(i1);
+                trainSet.set(i1, trainSet.get(i2));
+                trainSet.set(i2, tmp);
             }
-            for (int j = 0; j < trainSet.getShape()[0]; j++) {
-                Tensor instance = trainSet.get(new int[]{j});
+            for (Tensor instance : trainSet) {
                 input.setValue(createInputTensor(instance));
                 this.forwardCalculation();
                 classList.add((int) instance.getValue(new int[]{instance.getShape()[0] - 1}));
@@ -80,10 +77,9 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    public ClassificationPerformance test(Tensor testSet) {
+    public ClassificationPerformance test(ArrayList<Tensor> testSet) {
         int count = 0, total = 0;
-        for (int i = 0; i < testSet.getShape()[0]; i++) {
-            Tensor instance = testSet.get(new int[]{i});
+        for (Tensor instance : testSet) {
             inputNodes.get(0).setValue(createInputTensor(instance));
             int classLabel = this.predict().get(0);
             if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
