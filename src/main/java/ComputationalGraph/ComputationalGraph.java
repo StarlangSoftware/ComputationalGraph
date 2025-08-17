@@ -355,6 +355,9 @@ public abstract class ComputationalGraph implements Serializable {
         ComputationalNode outputNode = sortedNodes.getFirst();
         while (sortedNodes.size() > 1) {
             ComputationalNode currentNode = sortedNodes.removeLast();
+            if (currentNode.getValue() == null) {
+                throw new IllegalArgumentException("Current node's value is null");
+            }
             boolean isBiased = false;
             ArrayList<ComputationalNode> children = nodeMap.get(currentNode);
             if (children != null) {
@@ -363,9 +366,7 @@ public abstract class ComputationalGraph implements Serializable {
                         if (child.getFunction() != null) {
                             Function function = child.getFunction();
                             Tensor currentValue = currentNode.getValue();
-                            if (currentValue != null) {
-                                child.setValue(function.calculate(currentValue));
-                            }
+                            child.setValue(function.calculate(currentValue));
                         } else {
                             if (!isBiased && currentNode.isBiased()) {
                                 getBiased(currentNode);
@@ -388,21 +389,17 @@ public abstract class ComputationalGraph implements Serializable {
                                 }
                                 Tensor childValue = child.getValue();
                                 Tensor currentValue = currentNode.getValue();
-                                if (childValue != null && currentValue != null) {
-                                    if (((MultiplicationNode) child).isHadamard()) {
-                                        child.setValue(childValue.hadamardProduct(currentValue));
-                                    } else if (!((MultiplicationNode) child).getPriorityNode().equals(currentNode)) {
-                                        child.setValue(childValue.multiply(currentValue));
-                                    } else {
-                                        child.setValue(currentValue.multiply(childValue));
-                                    }
+                                if (((MultiplicationNode) child).isHadamard()) {
+                                    child.setValue(childValue.hadamardProduct(currentValue));
+                                } else if (!((MultiplicationNode) child).getPriorityNode().equals(currentNode)) {
+                                    child.setValue(childValue.multiply(currentValue));
+                                } else {
+                                    child.setValue(currentValue.multiply(childValue));
                                 }
                             } else {
                                 Tensor result = child.getValue();
                                 Tensor currentValue = currentNode.getValue();
-                                if (result != null && currentValue != null) {
-                                    child.setValue(result.add(currentValue));
-                                }
+                                child.setValue(result.add(currentValue));
                             }
                         }
                     }
