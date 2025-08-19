@@ -115,7 +115,7 @@ public class ComputationalGraphTest {
                 ComputationalNode m1 = this.addEdge(x1, v1, false);
                 ComputationalNode m1TanH = this.addEdge(m1, new Tanh(), false);
                 nodes.add(m1TanH);
-                ConcatenatedNode concatenatedNode = (ConcatenatedNode) this.concatEdges(nodes);
+                ConcatenatedNode concatenatedNode = (ConcatenatedNode) this.concatEdges(nodes, 2);
                 ArrayList<Double> w3Data = new ArrayList<>();
                 for (int i = 0; i < 8 * 3; i++) {
                     w3Data.add(-0.01 + (0.02 * rand1.nextDouble()));
@@ -124,20 +124,22 @@ public class ComputationalGraphTest {
                 ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
                 ComputationalNode a3 = this.addEdge(concatenatedNode, w3, false);
                 this.addEdge(a3, new Softmax(), false);
-                ArrayList<Double> data = new ArrayList<>();
-                for (int i = 0; i < 5; i++) {
-                    data.add(-0.01 + (0.02 * rand1.nextDouble()));
+                for (int j = 0; j < 10; j++) {
+                    ArrayList<Double> data = new ArrayList<>();
+                    for (int i = 0; i < 5; i++) {
+                        data.add(-0.01 + (0.02 * rand1.nextDouble()));
+                    }
+                    input.setValue(new Tensor(data, new int[]{1, 1, 5}));
+                    data = new ArrayList<>();
+                    for (int i = 0; i < 5; i++) {
+                        data.add(-0.01 + (0.02 * rand1.nextDouble()));
+                    }
+                    x1.setValue(new Tensor(data, new int[]{1, 1, 5}));
+                    ArrayList<Integer> classList = new ArrayList<>();
+                    classList.add(1);
+                    this.forwardCalculation();
+                    this.backpropagation(0.01, classList);
                 }
-                input.setValue(new Tensor(data, new int[]{1, 1, 5}));
-                data = new ArrayList<>();
-                for (int i = 0; i < 5; i++) {
-                    data.add(-0.01 + (0.02 * rand1.nextDouble()));
-                }
-                x1.setValue(new Tensor(data, new int[]{1, 1, 5}));
-                ArrayList<Integer> classList = new ArrayList<>();
-                classList.add(1);
-                this.forwardCalculation();
-                this.backpropagation(0.01, classList);
             }
 
             @Override

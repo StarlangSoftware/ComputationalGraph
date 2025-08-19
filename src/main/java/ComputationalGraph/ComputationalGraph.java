@@ -57,8 +57,8 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
-    protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes) {
-        ComputationalNode newNode = new ConcatenatedNode();
+    protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes, int dimension) {
+        ComputationalNode newNode = new ConcatenatedNode(dimension);
         for (ComputationalNode node : nodes) {
             nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
             reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(node);
@@ -199,19 +199,30 @@ public abstract class ComputationalGraph implements Serializable {
         } else {
             if (child instanceof ConcatenatedNode) {
                 int index = ((ConcatenatedNode) child).getIndex(node);
-                int blockSize = child.getBackward().getShape()[child.getBackward().getShape().length - 1] / reverseChildren.size();
-                ArrayList<Double> values = (ArrayList<Double>) child.getBackward().getData(), newValues = new ArrayList<>();
+                int blockSize = child.getBackward().getShape()[((ConcatenatedNode) child).getDimension()] / reverseChildren.size();
+                int dimensions = blockSize;
                 int[] shape = new int[child.getBackward().getShape().length];
-                int size = 1;
-                for (int i = 0; i < shape.length - 1; i++) {
-                    shape[i] = child.getBackward().getShape()[i];
-                    size *= shape[i];
-                }
-                shape[shape.length - 1] = blockSize;
-                for (int i = 0; i < size; i++) {
-                    for (int j = 0; j < blockSize; j++) {
-                        newValues.add(values.get((i * child.getBackward().getShape()[child.getBackward().getShape().length - 1]) + (index * blockSize + j)));
+                for (int i = 0; i < child.getBackward().getShape().length; i++) {
+                    if (((ConcatenatedNode) child).getDimension() > i) {
+                        shape[i] = child.getBackward().getShape()[i];
+                    } else if (((ConcatenatedNode) child).getDimension() < i) {
+                        dimensions *= child.getBackward().getShape()[i];
+                        shape[i] = child.getBackward().getShape()[i];
+                    } else {
+                        shape[i] = blockSize;
                     }
+                }
+                ArrayList<Double> childValues = (ArrayList<Double>) child.getBackward().getData(), newValues = new ArrayList<>();
+                int cur = 0;
+                int i = 0;
+                while (i < childValues.size()) {
+                    if (cur % reverseChildren.size() == index) {
+                        for (int k = 0; k < dimensions; k++) {
+                            newValues.add(childValues.get(i + k));
+                        }
+                    }
+                    cur++;
+                    i += dimensions;
                 }
                 return new Tensor(newValues, shape);
             } else {
@@ -379,7 +390,7 @@ public abstract class ComputationalGraph implements Serializable {
                         }
                     } else {
                         if (child instanceof ConcatenatedNode) {
-                            child.setValue(child.getValue().concat(currentNode.getValue()));
+                            child.setValue(child.getValue().concat(currentNode.getValue(), ((ConcatenatedNode) child).getDimension()));
                             ((ConcatenatedNode) child).addNode(currentNode);
                         } else {
                             if (child instanceof MultiplicationNode) {
