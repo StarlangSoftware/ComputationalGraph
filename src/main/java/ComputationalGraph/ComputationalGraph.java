@@ -192,7 +192,7 @@ public abstract class ComputationalGraph implements Serializable {
             return null;
         }
         ComputationalNode left = reverseChildren.get(0);
-        if (reverseChildren.size() == 1) {
+        if (child.getFunction() != null) {
             Function function = child.getFunction();
             Tensor backward = child.getBackward();
             return function.derivative(child.getValue(), backward);
