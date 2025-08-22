@@ -191,28 +191,54 @@ public abstract class ComputationalGraph implements Serializable {
         if (reverseChildren == null || reverseChildren.isEmpty()) {
             return null;
         }
-        ComputationalNode left = reverseChildren.get(0);
+        Tensor backward;
+        if (child.isBiased()) {
+            int[] endIndexes = new int[child.getBackward().getShape().length];
+            for (int i = 0; i < endIndexes.length; i++) {
+                if (i == endIndexes.length - 1) {
+                    endIndexes[i] = child.getBackward().getShape()[i] - 1;
+                } else {
+                    endIndexes[i] = child.getBackward().getShape()[i];
+                }
+            }
+            backward = child.getBackward().partial(new int[child.getBackward().getShape().length], endIndexes);
+        } else {
+            backward = child.getBackward();
+        }
         if (child.getFunction() != null) {
             Function function = child.getFunction();
-            Tensor backward = child.getBackward();
-            return function.derivative(child.getValue(), backward);
+            Tensor childValue;
+            if (child.isBiased()) {
+                int[] endIndexes = new int[child.getValue().getShape().length];
+                for (int i = 0; i < endIndexes.length; i++) {
+                    if (i == endIndexes.length - 1) {
+                        endIndexes[i] = child.getValue().getShape()[i] - 1;
+                    } else {
+                        endIndexes[i] = child.getValue().getShape()[i];
+                    }
+                }
+                childValue = child.getValue().partial(new int[child.getValue().getShape().length], endIndexes);
+            } else {
+                childValue = child.getValue();
+            }
+            return function.derivative(childValue, backward);
         } else {
             if (child instanceof ConcatenatedNode) {
                 int index = ((ConcatenatedNode) child).getIndex(node);
-                int blockSize = child.getBackward().getShape()[((ConcatenatedNode) child).getDimension()] / reverseChildren.size();
+                int blockSize = backward.getShape()[((ConcatenatedNode) child).getDimension()] / reverseChildren.size();
                 int dimensions = blockSize;
-                int[] shape = new int[child.getBackward().getShape().length];
-                for (int i = 0; i < child.getBackward().getShape().length; i++) {
+                int[] shape = new int[backward.getShape().length];
+                for (int i = 0; i < backward.getShape().length; i++) {
                     if (((ConcatenatedNode) child).getDimension() > i) {
-                        shape[i] = child.getBackward().getShape()[i];
+                        shape[i] = backward.getShape()[i];
                     } else if (((ConcatenatedNode) child).getDimension() < i) {
-                        dimensions *= child.getBackward().getShape()[i];
-                        shape[i] = child.getBackward().getShape()[i];
+                        dimensions *= backward.getShape()[i];
+                        shape[i] = backward.getShape()[i];
                     } else {
                         shape[i] = blockSize;
                     }
                 }
-                ArrayList<Double> childValues = (ArrayList<Double>) child.getBackward().getData(), newValues = new ArrayList<>();
+                ArrayList<Double> childValues = (ArrayList<Double>) backward.getData(), newValues = new ArrayList<>();
                 int cur = 0;
                 int i = 0;
                 while (i < childValues.size()) {
@@ -226,21 +252,8 @@ public abstract class ComputationalGraph implements Serializable {
                 }
                 return new Tensor(newValues, shape);
             } else {
-                Tensor backward;
-                if (child.isBiased()) {
-                    int[] endIndexes = new int[child.getBackward().getShape().length];
-                    for (int i = 0; i < endIndexes.length; i++) {
-                        if (i == endIndexes.length - 1) {
-                            endIndexes[i] = child.getBackward().getShape()[i] - 1;
-                        } else {
-                            endIndexes[i] = child.getBackward().getShape()[i];
-                        }
-                    }
-                    backward = child.getBackward().partial(new int[child.getBackward().getShape().length], endIndexes);
-                } else {
-                    backward = child.getBackward();
-                }
                 if (child instanceof MultiplicationNode) {
+                    ComputationalNode left = reverseChildren.get(0);
                     ComputationalNode right = reverseChildren.get(1);
                     if (left == node) {
                         Tensor rightValue = right.getValue();
