@@ -13,6 +13,10 @@ public class ELU implements Function, Serializable {
         this.a = a;
     }
 
+    public ELU() {
+        this.a = 1.0;
+    }
+
     @Override
     public Tensor calculate(Tensor matrix) {
         ArrayList<Double> values = new ArrayList<>();

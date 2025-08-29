@@ -42,7 +42,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         Tensor t2 = new Tensor(w2Data, new int[]{1, 5, 20});
         ComputationalNode w2 = new MultiplicationNode(true, false, t2, false);
         ComputationalNode a2 = this.addEdge(a1Sigmoid, w2, false);
-        ComputationalNode a2Sigmoid = this.addEdge(a2, new Sigmoid(), true);
+        ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), true);
         // Output layer weights
         ArrayList<Double> w3Data = new ArrayList<>();
         Random rand3 = new Random(1);
@@ -51,7 +51,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         }
         Tensor t3 = new Tensor(w3Data, new int[]{1, 21, 3});
         ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
-        ComputationalNode a3 = this.addEdge(a2Sigmoid, w3, false);
+        ComputationalNode a3 = this.addEdge(a2ELU, w3, false);
         this.addEdge(a3, new Softmax(), false);
         // Training
         ArrayList<Integer> classList = new ArrayList<>();
