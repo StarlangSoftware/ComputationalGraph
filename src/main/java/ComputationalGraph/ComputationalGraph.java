@@ -1,6 +1,5 @@
 package ComputationalGraph;
 
-import Classification.Parameter.Parameter;
 import Classification.Performance.ClassificationPerformance;
 import Math.Tensor;
 
@@ -17,7 +16,7 @@ public abstract class ComputationalGraph implements Serializable {
         this.inputNodes = new ArrayList<>();
     }
 
-    public abstract void train(ArrayList<Tensor> trainSet, Parameter parameters);
+    public abstract void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters);
     public abstract ClassificationPerformance test(ArrayList<Tensor> testSet);
     protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
 
@@ -138,35 +137,6 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * Recursive helper function to update the values of learnable nodes.
-     */
-    private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node) {
-        visited.add(node);
-        if (node.isLearnable()) {
-            node.updateValue();
-        }
-        if (nodeMap.containsKey(node)) {
-            for (ComputationalNode child : nodeMap.get(node)) {
-                if (!visited.contains(child)) {
-                    updateRecursive(visited, child);
-                }
-            }
-        }
-    }
-
-    /**
-     * Updates the values of all learnable nodes in the graph.
-     */
-    private void updateValues() {
-        HashSet<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : nodeMap.keySet()) {
-            if (!visited.contains(node)) {
-                updateRecursive(visited, node);
-            }
-        }
-    }
-
-    /**
      * Swaps last two dimensions of the Tensor.
      * @param length dimension size.
      */
@@ -279,18 +249,17 @@ public abstract class ComputationalGraph implements Serializable {
     /**
      * Computes the difference between the predicted and actual values (R - Y).
      * @param output The output node of the computational graph.
-     * @param learningRate The learning rate for gradient descent.
      * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
      */
-    private void calculateRMinusY(ComputationalNode output, double learningRate, ArrayList<Integer> classLabelIndex) {
+    private void calculateRMinusY(ComputationalNode output, ArrayList<Integer> classLabelIndex) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> outputValues = (ArrayList<Double>) output.getValue().getData();
         int lastDimension = output.getValue().getShape()[output.getValue().getShape().length - 1];
         for (int i = 0; i < outputValues.size(); i++) {
             if (i % lastDimension == classLabelIndex.get(i / lastDimension)) {
-                values.add((1 - outputValues.get(i)) * learningRate);
+                values.add(1 - outputValues.get(i));
             } else {
-                values.add(-outputValues.get(i) * learningRate);
+                values.add(-outputValues.get(i));
             }
         }
         Tensor backward = new Tensor(values, output.getValue().getShape());
@@ -299,14 +268,14 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Performs backpropagation on the computational graph.
-     * @param learningRate The learning rate for gradient descent.
+     * @param optimizer Optimizer to be used for updating the values.
      * @param classLabelIndex The true class labels (as a list of integers).
      */
-    protected void backpropagation(double learningRate, ArrayList<Integer> classLabelIndex) {
+    protected void backpropagation(Optimizer optimizer, ArrayList<Integer> classLabelIndex) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
-        calculateRMinusY(outputNode, learningRate, classLabelIndex);
+        calculateRMinusY(outputNode, classLabelIndex);
         if (!sortedNodes.isEmpty()) {
             sortedNodes.remove(0).setBackward(outputNode.getBackward());
         }
@@ -326,7 +295,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        updateValues();
+        optimizer.updateValues(this.nodeMap);
         clear();
     }
 
@@ -358,7 +327,7 @@ public abstract class ComputationalGraph implements Serializable {
     /**
      * Perform a forward pass and return predicted class indices.
      */
-    public ArrayList<Integer> predict() {
+    protected ArrayList<Integer> predict() {
         ArrayList<Integer> classLabels = forwardCalculation();
         clear();
         return classLabels;

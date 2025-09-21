@@ -45,7 +45,7 @@ public class ComputationalGraphTest {
             }
         }
         NeuralNet graph = new NeuralNet();
-        graph.train(trainList, new NeuralNetParameter(100, 0.99, 0.1, 1));
+        graph.train(trainList, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
         assertEquals(1.0, performance.getAccuracy(), 0.01);
@@ -56,7 +56,7 @@ public class ComputationalGraphTest {
     public void test2() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
                 ComputationalNode a0 = new ComputationalNode(false, null, false);
                 ComputationalNode a1 = new ComputationalNode(true, null, false);
                 ComputationalNode a2 = this.addAdditionEdge(a0, a1, false);
@@ -71,7 +71,7 @@ public class ComputationalGraphTest {
                 ArrayList<Integer> classList = new ArrayList<>();
                 classList.add(1);
                 this.forwardCalculation();
-                this.backpropagation(0.01, classList);
+                this.backpropagation(parameters.getOptimizer(), classList);
             }
 
             @Override
@@ -84,14 +84,14 @@ public class ComputationalGraphTest {
                 return null;
             }
         };
-        graph.train(null, null);
+        graph.train(null, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
     }
 
     @Test
     public void test3() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
                 ArrayList<ComputationalNode> nodes = new ArrayList<>();
                 ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
@@ -138,7 +138,7 @@ public class ComputationalGraphTest {
                     ArrayList<Integer> classList = new ArrayList<>();
                     classList.add(1);
                     this.forwardCalculation();
-                    this.backpropagation(0.01, classList);
+                    this.backpropagation(parameters.getOptimizer(), classList);
                 }
             }
 
@@ -152,14 +152,14 @@ public class ComputationalGraphTest {
                 return null;
             }
         };
-        graph.train(null, null);
+        graph.train(null, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
     }
 
     @Test
     public void test4() {
         ComputationalGraph graph = new ComputationalGraph() {
             @Override
-            public void train(ArrayList<Tensor> trainSet, Parameter parameters) {
+            public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
                 ComputationalNode input = new MultiplicationNode(false, false, false);
                 inputNodes.add(input);
                 ArrayList<Double> w1Data = new ArrayList<>();
@@ -188,7 +188,7 @@ public class ComputationalGraphTest {
                 ArrayList<Integer> classList = new ArrayList<>();
                 classList.add(1);
                 this.forwardCalculation();
-                this.backpropagation(0.01, classList);
+                this.backpropagation(parameters.getOptimizer(), classList);
             }
 
             @Override
@@ -201,6 +201,13 @@ public class ComputationalGraphTest {
                 return null;
             }
         };
-        graph.train(null, null);
+        graph.train(null, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
+    }
+
+    @Test
+    public void test5() {
+        ComputationalNode node = new MultiplicationNode(false, false, new Tensor(Arrays.asList(1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0), new int[]{1, 3, 4}), false);
+        node.setBackward(new Tensor(Arrays.asList(1.0, 2.0, 23.0, 4.0, 5.0, 6.0, 7.0, 8.0, 1.0, 2.0, 3.0, 4.0, 12.0, 6.0, 7.0, 8.0, 1.0, 2.0, 3.0, 4.0, 15.0, 6.0, 7.0, 8.0), new int[]{2, 3, 4}));
+        node.updateValue();
     }
 }
