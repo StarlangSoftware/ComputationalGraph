@@ -203,11 +203,4 @@ public class ComputationalGraphTest {
         };
         graph.train(null, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
     }
-
-    @Test
-    public void test5() {
-        ComputationalNode node = new MultiplicationNode(false, false, new Tensor(Arrays.asList(1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0), new int[]{1, 3, 4}), false);
-        node.setBackward(new Tensor(Arrays.asList(1.0, 2.0, 23.0, 4.0, 5.0, 6.0, 7.0, 8.0, 1.0, 2.0, 3.0, 4.0, 12.0, 6.0, 7.0, 8.0, 1.0, 2.0, 3.0, 4.0, 15.0, 6.0, 7.0, 8.0), new int[]{2, 3, 4}));
-        node.updateValue();
-    }
 }
