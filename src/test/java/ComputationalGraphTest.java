@@ -1,4 +1,3 @@
-import Classification.Parameter.Parameter;
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
 import org.junit.Test;
