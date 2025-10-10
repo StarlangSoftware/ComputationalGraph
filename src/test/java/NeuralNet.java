@@ -1,6 +1,11 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.ComputationalGraph;
 
+import ComputationalGraph.Function.ELU;
+import ComputationalGraph.Function.Sigmoid;
+import ComputationalGraph.Function.Softmax;
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.MultiplicationNode;
 import Math.*;
 import ComputationalGraph.*;
 

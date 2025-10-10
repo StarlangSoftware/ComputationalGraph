@@ -1,7 +1,9 @@
-package ComputationalGraph;
+package ComputationalGraph.Optimizer;
 
 import java.io.Serializable;
 import java.util.*;
+
+import ComputationalGraph.Node.ComputationalNode;
 import Math.Tensor;
 
 public abstract class Optimizer implements Serializable {
@@ -19,8 +21,8 @@ public abstract class Optimizer implements Serializable {
     }
 
     private int broadcast(ComputationalNode node) {
-        int[] v = node.value.getShape();
-        int[] b = node.backward.getShape();
+        int[] v = node.getValue().getShape();
+        int[] b = node.getBackward().getShape();
         int index = -1;
         for (int i = 0; i < v.length; i++) {
             if (v[i] != b[i]) {
@@ -46,12 +48,12 @@ public abstract class Optimizer implements Serializable {
             int index = broadcast(node);
             if (index != -1) {
                 int v = 1, b = 1;
-                for (int i = node.value.getShape().length - 1; i >= index; i--) {
-                    v *= node.value.getShape()[i];
-                    b *= node.backward.getShape()[i];
+                for (int i = node.getValue().getShape().length - 1; i >= index; i--) {
+                    v *= node.getValue().getShape()[i];
+                    b *= node.getBackward().getShape()[i];
                 }
-                ArrayList<Double> backwardValues = (ArrayList<Double>) node.backward.getData();
-                double[] values = new double[node.value.getData().size()];
+                ArrayList<Double> backwardValues = (ArrayList<Double>) node.getBackward().getData();
+                double[] values = new double[node.getValue().getData().size()];
                 for (int i = 0; i < backwardValues.size(); i++) {
                     for (int j = i; j < i + b; j++) {
                         values[((j - i) % v) + v * (j / b)] += backwardValues.get(j);
@@ -62,7 +64,7 @@ public abstract class Optimizer implements Serializable {
                 for (double d : values) {
                     list.add(d);
                 }
-                node.setBackward(new Tensor(list, node.value.getShape()));
+                node.setBackward(new Tensor(list, node.getValue().getShape()));
             }
             this.setGradients(node);
             node.updateValue();

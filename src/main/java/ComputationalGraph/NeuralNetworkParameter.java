@@ -1,6 +1,9 @@
 package ComputationalGraph;
 
 import Classification.Parameter.Parameter;
+import ComputationalGraph.Initialization.Initialization;
+import ComputationalGraph.Initialization.RandomInitialization;
+import ComputationalGraph.Optimizer.Optimizer;
 
 public class NeuralNetworkParameter extends Parameter {
 

@@ -1,4 +1,4 @@
-package ComputationalGraph;
+package ComputationalGraph.Node;
 
 import java.io.Serializable;
 import Math.Tensor;

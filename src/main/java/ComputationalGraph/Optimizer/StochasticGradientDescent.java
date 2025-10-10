@@ -1,7 +1,9 @@
-package ComputationalGraph;
+package ComputationalGraph.Optimizer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+
+import ComputationalGraph.Node.ComputationalNode;
 import Math.Tensor;
 
 public class StochasticGradientDescent extends Optimizer implements Serializable {

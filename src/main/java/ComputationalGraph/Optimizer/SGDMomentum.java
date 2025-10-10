@@ -1,7 +1,9 @@
-package ComputationalGraph;
+package ComputationalGraph.Optimizer;
 
 import java.io.Serializable;
 import java.util.*;
+
+import ComputationalGraph.Node.ComputationalNode;
 import Math.Tensor;
 
 public class SGDMomentum extends Optimizer implements Serializable {

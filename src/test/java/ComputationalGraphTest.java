@@ -1,5 +1,11 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
+import ComputationalGraph.Function.Softmax;
+import ComputationalGraph.Function.Tanh;
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.ConcatenatedNode;
+import ComputationalGraph.Node.MultiplicationNode;
+import ComputationalGraph.Optimizer.StochasticGradientDescent;
 import org.junit.Test;
 import Math.*;
 

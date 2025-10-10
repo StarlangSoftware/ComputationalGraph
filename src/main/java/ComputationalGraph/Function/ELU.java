@@ -1,4 +1,4 @@
-package ComputationalGraph;
+package ComputationalGraph.Function;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,11 +1,9 @@
-package ComputationalGraph;
+package ComputationalGraph.Node;
 
+import ComputationalGraph.Function.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class ComputationalNode implements Serializable {
     protected Tensor value;
