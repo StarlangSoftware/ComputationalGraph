@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import Math.*;
 
-public class Subtract implements Function, Serializable {
+public class Negation implements Function, Serializable {
     @Override
     public Tensor calculate(Tensor matrix) {
         ArrayList<Double> values = new ArrayList<>();

@@ -14,7 +14,7 @@ import java.util.*;
 public abstract class ComputationalGraph implements Serializable {
 
     private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap = new HashMap<>();
-    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new HashMap<>();
+    private final LinkedHashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new LinkedHashMap<>();
     protected ArrayList<ComputationalNode> inputNodes;
 
     public ComputationalGraph() {
@@ -346,6 +346,8 @@ public abstract class ComputationalGraph implements Serializable {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         ComputationalNode outputNode = sortedNodes.getFirst();
+        HashMap<ComputationalNode, ComputationalNode[]> concatenatedNodeMap = new HashMap<>();
+        HashMap<ComputationalNode, Integer> counterMap = new HashMap<>();
         while (sortedNodes.size() > 1) {
             ComputationalNode currentNode = sortedNodes.removeLast();
             if (currentNode.isBiased()) {
@@ -363,31 +365,47 @@ public abstract class ComputationalGraph implements Serializable {
                             Tensor currentValue = currentNode.getValue();
                             child.setValue(function.calculate(currentValue));
                         } else {
-                            child.setValue(currentNode.getValue());
                             if (child instanceof ConcatenatedNode) {
-                                ((ConcatenatedNode) child).addNode(currentNode);
+                                if (!concatenatedNodeMap.containsKey(child)) {
+                                    concatenatedNodeMap.put(child, new ComputationalNode[reverseNodeMap.get(child).size()]);
+                                }
+                                for (int i = 0; i < reverseNodeMap.get(child).size(); i++) {
+                                    if (currentNode.equals(reverseNodeMap.get(child).get(i))) {
+                                        concatenatedNodeMap.get(child)[i] = currentNode;
+                                        if (!counterMap.containsKey(child)) {
+                                            counterMap.put(child, 0);
+                                        }
+                                        counterMap.put(child, counterMap.get(child) + 1);
+                                        break;
+                                    }
+                                }
+                                if (reverseNodeMap.get(child).size() == counterMap.get(child)) {
+                                    child.setValue(concatenatedNodeMap.get(child)[0].getValue());
+                                    ((ConcatenatedNode) child).addNode(concatenatedNodeMap.get(child)[0]);
+                                    for (int i = 1; i < concatenatedNodeMap.get(child).length; i++) {
+                                        child.setValue(child.getValue().concat(concatenatedNodeMap.get(child)[i].getValue(), ((ConcatenatedNode) child).getDimension()));
+                                        ((ConcatenatedNode) child).addNode(concatenatedNodeMap.get(child)[i]);
+                                    }
+                                }
+                            } else {
+                                child.setValue(currentNode.getValue());
                             }
                         }
                     } else {
-                        if (child instanceof ConcatenatedNode) {
-                            child.setValue(child.getValue().concat(currentNode.getValue(), ((ConcatenatedNode) child).getDimension()));
-                            ((ConcatenatedNode) child).addNode(currentNode);
-                        } else {
-                            if (child instanceof MultiplicationNode) {
-                                Tensor childValue = child.getValue();
-                                Tensor currentValue = currentNode.getValue();
-                                if (((MultiplicationNode) child).isHadamard()) {
-                                    child.setValue(childValue.hadamardProduct(currentValue));
-                                } else if (!((MultiplicationNode) child).getPriorityNode().equals(currentNode)) {
-                                    child.setValue(childValue.multiply(currentValue));
-                                } else {
-                                    child.setValue(currentValue.multiply(childValue));
-                                }
+                        if (child instanceof MultiplicationNode) {
+                            Tensor childValue = child.getValue();
+                            Tensor currentValue = currentNode.getValue();
+                            if (((MultiplicationNode) child).isHadamard()) {
+                                child.setValue(childValue.hadamardProduct(currentValue));
+                            } else if (!((MultiplicationNode) child).getPriorityNode().equals(currentNode)) {
+                                child.setValue(childValue.multiply(currentValue));
                             } else {
-                                Tensor result = child.getValue();
-                                Tensor currentValue = currentNode.getValue();
-                                child.setValue(result.add(currentValue));
+                                child.setValue(currentValue.multiply(childValue));
                             }
+                        } else {
+                            Tensor result = child.getValue();
+                            Tensor currentValue = currentNode.getValue();
+                            child.setValue(result.add(currentValue));
                         }
                     }
                 }
