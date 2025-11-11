@@ -14,7 +14,7 @@ import java.util.*;
 public abstract class ComputationalGraph implements Serializable {
 
     private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap = new HashMap<>();
-    private final LinkedHashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new LinkedHashMap<>();
+    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new HashMap<>();
     protected ArrayList<ComputationalNode> inputNodes;
 
     public ComputationalGraph() {
@@ -62,10 +62,11 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes, int dimension) {
-        ComputationalNode newNode = new ConcatenatedNode(dimension);
+        ConcatenatedNode newNode = new ConcatenatedNode(dimension);
         for (ComputationalNode node : nodes) {
             nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
             reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(node);
+            newNode.addNode(node);
         }
         return newNode;
     }
@@ -115,9 +116,6 @@ public abstract class ComputationalGraph implements Serializable {
         visited.add(node);
         if (!node.isLearnable()) {
             node.setValue(null);
-        }
-        if (node instanceof ConcatenatedNode) {
-            ((ConcatenatedNode) node).clear();
         }
         node.setBackward(null);
         if (nodeMap.containsKey(node)) {
@@ -369,22 +367,15 @@ public abstract class ComputationalGraph implements Serializable {
                                 if (!concatenatedNodeMap.containsKey(child)) {
                                     concatenatedNodeMap.put(child, new ComputationalNode[reverseNodeMap.get(child).size()]);
                                 }
-                                for (int i = 0; i < reverseNodeMap.get(child).size(); i++) {
-                                    if (currentNode.equals(reverseNodeMap.get(child).get(i))) {
-                                        concatenatedNodeMap.get(child)[i] = currentNode;
-                                        if (!counterMap.containsKey(child)) {
-                                            counterMap.put(child, 0);
-                                        }
-                                        counterMap.put(child, counterMap.get(child) + 1);
-                                        break;
-                                    }
+                                concatenatedNodeMap.get(child)[((ConcatenatedNode) child).getIndex(currentNode)] = currentNode;
+                                if (!counterMap.containsKey(child)) {
+                                    counterMap.put(child, 0);
                                 }
+                                counterMap.put(child, counterMap.get(child) + 1);
                                 if (reverseNodeMap.get(child).size() == counterMap.get(child)) {
                                     child.setValue(concatenatedNodeMap.get(child)[0].getValue());
-                                    ((ConcatenatedNode) child).addNode(concatenatedNodeMap.get(child)[0]);
                                     for (int i = 1; i < concatenatedNodeMap.get(child).length; i++) {
                                         child.setValue(child.getValue().concat(concatenatedNodeMap.get(child)[i].getValue(), ((ConcatenatedNode) child).getDimension()));
-                                        ((ConcatenatedNode) child).addNode(concatenatedNodeMap.get(child)[i]);
                                     }
                                 }
                             } else {

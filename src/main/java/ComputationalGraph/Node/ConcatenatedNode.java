@@ -18,10 +18,6 @@ public class ConcatenatedNode extends ComputationalNode implements Serializable 
         return dimension;
     }
 
-    public void clear() {
-        this.indexMap.clear();
-    }
-
     public int getIndex(ComputationalNode node) {
         return indexMap.get(node);
     }
