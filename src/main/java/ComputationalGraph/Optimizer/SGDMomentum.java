@@ -8,8 +8,8 @@ import Math.Tensor;
 
 public class SGDMomentum extends Optimizer implements Serializable {
 
-    private final HashMap<ComputationalNode, ArrayList<Double>> velocityMap;
-    private final double momentum;
+    protected final HashMap<ComputationalNode, ArrayList<Double>> velocityMap;
+    protected final double momentum;
 
     public SGDMomentum(double learningRate, double etaDecrease, double momentum) {
         super(learningRate, etaDecrease);
