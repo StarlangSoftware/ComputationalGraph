@@ -20,21 +20,16 @@ public class Adam extends SGDMomentum implements Serializable {
     }
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> newValuesMomentum = (ArrayList<Double>) node.getBackward().getData();
+        ArrayList<Double> newValuesMomentum = new ArrayList<>();
         ArrayList<Double> newValuesVelocity = new ArrayList<>();
-        for (Double value : newValuesMomentum) {
-            newValuesVelocity.add(value * value);
+        for (int i = 0; i < node.getBackward().getData().size(); i++) {
+            newValuesMomentum.add((1 - momentum) * node.getBackward().getData().get(i));
+            newValuesVelocity.add((1 - beta2) * (node.getBackward().getData().get(i) * node.getBackward().getData().get(i)));
         }
-        newValuesMomentum.replaceAll(value -> (1 - momentum) * value);
-        newValuesVelocity.replaceAll(value -> (1 - beta2) * value);
         if (momentumMap.containsKey(node)) {
-            ArrayList<Double> oldVelocity = velocityMap.get(node);
-            oldVelocity.replaceAll(value -> beta2 * value);
-            ArrayList<Double> oldMomentum = momentumMap.get(node);
-            oldMomentum.replaceAll(value -> momentum * value);
             for (int i = 0; i < newValuesVelocity.size(); i++) {
-                newValuesVelocity.set(i, newValuesVelocity.get(i) + oldVelocity.get(i));
-                newValuesMomentum.set(i, newValuesMomentum.get(i) + oldMomentum.get(i));
+                newValuesVelocity.set(i, newValuesVelocity.get(i) + beta2 * velocityMap.get(node).get(i));
+                newValuesMomentum.set(i, newValuesMomentum.get(i) + momentum * momentumMap.get(node).get(i));
             }
         }
         momentumMap.put(node, (ArrayList<Double>) newValuesMomentum.clone());

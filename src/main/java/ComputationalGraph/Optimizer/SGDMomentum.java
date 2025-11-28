@@ -19,13 +19,13 @@ public class SGDMomentum extends Optimizer implements Serializable {
 
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> newValues = (ArrayList<Double>) node.getBackward().getData();
-        newValues.replaceAll(value -> (1 - momentum) * value);
+        ArrayList<Double> newValues = new ArrayList<>();
+        for (int i = 0; i < node.getBackward().getData().size(); i++) {
+            newValues.add((1 - momentum) * node.getBackward().getData().get(i));
+        }
         if (velocityMap.containsKey(node)) {
-            ArrayList<Double> oldVelocity = velocityMap.get(node);
-            oldVelocity.replaceAll(value -> momentum * value);
             for (int i = 0; i < newValues.size(); i++) {
-                newValues.set(i, newValues.get(i) + oldVelocity.get(i));
+                newValues.set(i, newValues.get(i) + (velocityMap.get(node).get(i) * momentum));
             }
         }
         velocityMap.put(node, (ArrayList<Double>) newValues.clone());
