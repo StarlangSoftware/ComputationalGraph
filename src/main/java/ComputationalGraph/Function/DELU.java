@@ -23,6 +23,9 @@ public class DELU implements Function, Serializable {
         this.xc = 1.25643;
     }
 
+    /**
+     * Computes the DELU activation for the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor matrix) {
         ArrayList<Double> values = new ArrayList<>();
@@ -37,6 +40,10 @@ public class DELU implements Function, Serializable {
         return new Tensor(values, matrix.getShape());
     }
 
+    /**
+     * Computes the derivative of the DELU activation function.
+     * Assumes `matrix` is the output of DELU(x).
+     */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();

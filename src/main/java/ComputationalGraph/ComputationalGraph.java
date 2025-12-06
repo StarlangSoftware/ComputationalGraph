@@ -1,6 +1,7 @@
 package ComputationalGraph;
 
 import Classification.Performance.ClassificationPerformance;
+import ComputationalGraph.Function.Dropout;
 import ComputationalGraph.Function.Function;
 import ComputationalGraph.Node.ComputationalNode;
 import ComputationalGraph.Node.ConcatenatedNode;
@@ -331,16 +332,24 @@ public abstract class ComputationalGraph implements Serializable {
      * Perform a forward pass and return predicted class indices.
      */
     protected ArrayList<Integer> predict() {
-        ArrayList<Integer> classLabels = forwardCalculation();
+        ArrayList<Integer> classLabels = forwardCalculation(false);
         clear();
         return classLabels;
     }
 
     /**
-     * Perform a forward pass through the computational graph.
-     * @return A list of predicted class indices.
+     * Perform a forward pass for the training phase.
      */
     protected ArrayList<Integer> forwardCalculation() {
+        return forwardCalculation(true);
+    }
+
+    /**
+     * Perform a forward pass through the computational graph.
+     * @param isDropout Whether to perform dropout or not.
+     * @return A list of predicted class indices.
+     */
+    private ArrayList<Integer> forwardCalculation(boolean isDropout) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         ComputationalNode outputNode = sortedNodes.getFirst();
@@ -361,7 +370,15 @@ public abstract class ComputationalGraph implements Serializable {
                         if (child.getFunction() != null) {
                             Function function = child.getFunction();
                             Tensor currentValue = currentNode.getValue();
-                            child.setValue(function.calculate(currentValue));
+                            if (function instanceof Dropout) {
+                                if (isDropout) {
+                                    child.setValue(function.calculate(currentValue));
+                                } else {
+                                    child.setValue(new Tensor(currentValue.getData(), currentValue.getShape()));
+                                }
+                            } else {
+                                child.setValue(function.calculate(currentValue));
+                            }
                         } else {
                             if (child instanceof ConcatenatedNode) {
                                 if (!concatenatedNodeMap.containsKey(child)) {

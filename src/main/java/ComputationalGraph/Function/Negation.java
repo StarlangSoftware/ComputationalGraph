@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import Math.*;
 
 public class Negation implements Function, Serializable {
+
+    /**
+     *  Negates the values of the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor matrix) {
         ArrayList<Double> values = new ArrayList<>();
@@ -16,6 +20,9 @@ public class Negation implements Function, Serializable {
         return new Tensor(values, matrix.getShape());
     }
 
+    /**
+     *  Calculates the derivative of the Negation function.
+     */
     @Override
     public Tensor derivative(Tensor matrix, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();

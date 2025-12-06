@@ -16,10 +16,17 @@ public abstract class Optimizer implements Serializable {
         this.etaDecrease = etaDecrease;
     }
 
+    /**
+     * Updates the learning rate of the optimizer.
+     */
     public void setLearningRate() {
         this.learningRate *= this.etaDecrease;
     }
 
+    /**
+     * Checks if broadcasting be applied to the corresponding node.
+     * @param node The node to check.
+     */
     private int broadcast(ComputationalNode node) {
         int[] v = node.getValue().getShape();
         int[] b = node.getBackward().getShape();
@@ -78,6 +85,10 @@ public abstract class Optimizer implements Serializable {
         }
     }
 
+    /**
+     * Sets the gradients (backward values) of the node.
+     * @param node The node whose gradients are to be set.
+     */
     protected abstract void setGradients(ComputationalNode node);
 
     /**

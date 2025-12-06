@@ -30,6 +30,10 @@ public class Softmax implements Function, Serializable {
         return new Tensor(values, tensor.getShape());
     }
 
+    /**
+     * Computes the derivative of the Softmax function.
+     * Assumes `tensor` is the output of softmax(x).
+     */
     @Override
     public Tensor derivative(Tensor tensor, Tensor backward) {
         int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];

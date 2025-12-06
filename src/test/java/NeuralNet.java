@@ -1,6 +1,7 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.ComputationalGraph;
 
+import ComputationalGraph.Function.Dropout;
 import ComputationalGraph.Function.ELU;
 import ComputationalGraph.Function.Sigmoid;
 import ComputationalGraph.Function.Softmax;
@@ -28,19 +29,21 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
         // First layer weights
-        Tensor t1 = new Tensor(parameters.getInitialization().initialize(5, 4, new Random(1)), new int[]{5, 4});
+        Tensor t1 = new Tensor(parameters.getInitialization().initialize(5, 4, new Random(parameters.getSeed())), new int[]{5, 4});
         ComputationalNode w1 = new MultiplicationNode(true, false, t1, false);
         ComputationalNode a1 = this.addEdge(input, w1, false);
-        ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), true);
+        ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), false);
+        ComputationalNode a1SigmoidDropout = this.addEdge(a1Sigmoid, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Second layer weights
-        Tensor t2 = new Tensor(parameters.getInitialization().initialize(5, 20, new Random(1)), new int[]{5, 20});
+        Tensor t2 = new Tensor(parameters.getInitialization().initialize(5, 20, new Random(parameters.getSeed())), new int[]{5, 20});
         ComputationalNode w2 = new MultiplicationNode(true, false, t2, false);
-        ComputationalNode a2 = this.addEdge(a1Sigmoid, w2, false);
-        ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), true);
+        ComputationalNode a2 = this.addEdge(a1SigmoidDropout, w2, false);
+        ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
+        ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
-        Tensor t3 = new Tensor(parameters.getInitialization().initialize(21, 3, new Random(1)), new int[]{21, 3});
+        Tensor t3 = new Tensor(parameters.getInitialization().initialize(21, 3, new Random(parameters.getSeed())), new int[]{21, 3});
         ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
-        ComputationalNode a3 = this.addEdge(a2ELU, w3, false);
+        ComputationalNode a3 = this.addEdge(a2ELUDropout, w3, false);
         this.addEdge(a3, new Softmax(), false);
         // Training
         ArrayList<Integer> classList = new ArrayList<>();

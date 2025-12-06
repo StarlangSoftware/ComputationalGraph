@@ -12,6 +12,10 @@ public class StochasticGradientDescent extends Optimizer implements Serializable
         super(learningRate, etaDecrease);
     }
 
+    /**
+     * Sets the gradients (backward values) of the node to the learning rate times the backward values.
+     * @param node The node whose gradients are to be set.
+     */
     @Override
     protected void setGradients(ComputationalNode node) {
         ArrayList<Double> values = new ArrayList<>();

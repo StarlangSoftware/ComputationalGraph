@@ -45,7 +45,7 @@ public class ComputationalGraphTest {
             }
         }
         NeuralNet graph = new NeuralNet();
-        graph.train(trainList, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
+        graph.train(trainList, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), 0));
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
         assertEquals(1.0, performance.getAccuracy(), 0.01);

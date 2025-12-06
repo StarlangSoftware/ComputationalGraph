@@ -17,6 +17,9 @@ public class ELU implements Function, Serializable {
         this.a = 1.0;
     }
 
+    /**
+     * Computes the ELU activation for the given tensor.
+     */
     @Override
     public Tensor calculate(Tensor matrix) {
         ArrayList<Double> values = new ArrayList<>();
@@ -31,6 +34,10 @@ public class ELU implements Function, Serializable {
         return new Tensor(values, matrix.getShape());
     }
 
+    /**
+     * Computes the derivative of the ELU activation function.
+     * Assumes `matrix` is the output of ELU(x).
+     */
     @Override
     public Tensor derivative(Tensor matrix, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
