@@ -41,6 +41,9 @@ public class ComputationalNode implements Serializable {
         this(learnable, isBiased, null, null);
     }
 
+    /**
+     * Returns a string representation of the node.
+     */
     @Override
     public String toString() {
         StringBuilder details = new StringBuilder();

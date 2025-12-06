@@ -21,8 +21,8 @@ public class ReLU implements Function, Serializable {
     }
 
     /**
-     * Computes the derivative of the ReLU function.
-     * Assumes input is the raw pre-activation tensor.
+     * Computes the derivative of the ReLU activation function.
+     * Assumes `value` is the output of ReLU(x).
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {

@@ -42,7 +42,7 @@ public class DELU implements Function, Serializable {
 
     /**
      * Computes the derivative of the DELU activation function.
-     * Assumes `matrix` is the output of DELU(x).
+     * Assumes `value` is the output of DELU(x).
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
