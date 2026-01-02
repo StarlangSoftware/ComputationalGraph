@@ -26,6 +26,7 @@ public abstract class Optimizer implements Serializable {
     /**
      * Checks if broadcasting be applied to the corresponding node.
      * @param node The node to check.
+     * @return The index of the dimension where broadcasting is to be applied. -1 if broadcasting is not to be applied.
      */
     private int broadcast(ComputationalNode node) {
         int[] v = node.getValue().getShape();
@@ -48,6 +49,9 @@ public abstract class Optimizer implements Serializable {
 
     /**
      * Recursive helper function to update the values of learnable nodes.
+     * @param visited A set of visited nodes.
+     * @param node The current node being processed.
+     * @param nodeMap A map of nodes to their children.
      */
     private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node, HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
         visited.add(node);
@@ -93,6 +97,7 @@ public abstract class Optimizer implements Serializable {
 
     /**
      * Updates the values of all learnable nodes in the graph.
+     * @param nodeMap A map of nodes to their children.
      */
     public void updateValues(HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
         HashSet<ComputationalNode> visited = new HashSet<>();

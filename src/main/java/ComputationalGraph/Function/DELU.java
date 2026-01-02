@@ -24,12 +24,14 @@ public class DELU implements Function, Serializable {
     }
 
     /**
-     * Computes the DELU activation for the given tensor.
+     * Computes the DELU activation for the given value tensor.
+     * @param value The tensor whose values are to be computed.
+     * @return DELU(x).
      */
     @Override
-    public Tensor calculate(Tensor matrix) {
+    public Tensor calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) matrix.getData();
+        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
             if (oldValue > this.xc) {
                 values.add(oldValue);
@@ -37,12 +39,14 @@ public class DELU implements Function, Serializable {
                 values.add((Math.exp(this.a * oldValue) - 1) / this.b);
             }
         }
-        return new Tensor(values, matrix.getShape());
+        return new Tensor(values, value.getShape());
     }
 
     /**
      * Computes the derivative of the DELU activation function.
-     * Assumes `value` is the output of DELU(x).
+     * @param value output of the DELU(x).
+     * @param backward Backward tensor.
+     * @return Gradient value of the corresponding node.
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {

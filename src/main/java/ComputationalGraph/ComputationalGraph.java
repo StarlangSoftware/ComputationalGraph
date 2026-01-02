@@ -22,8 +22,25 @@ public abstract class ComputationalGraph implements Serializable {
         this.inputNodes = new ArrayList<>();
     }
 
+    /**
+     * Trains the computational graph using the given training set and parameters.
+     * @param trainSet The training set.
+     * @param parameters The parameters of the computational graph.
+     */
     public abstract void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters);
+
+    /**
+     * Tests the computational graph on the given test set.
+     * @param testSet The test set.
+     * @return The classification performance of the computational graph on the test set.
+     */
     public abstract ClassificationPerformance test(ArrayList<Tensor> testSet);
+
+    /**
+     * Retrieves the class label indexes associated with the given output node in the computational graph.
+     * @param outputNode The output node for which the class label indexes are to be retrieved.
+     * @return A list of integers representing the class label indexes.
+     */
     protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
@@ -305,31 +322,33 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Add a bias term to the node's value by appending a column of ones.
+     * @param tensor The node whose value needs to be biased.
      */
-    private void getBiased(ComputationalNode first) {
-        int lastDimensionSize = first.getValue().getShape()[first.getValue().getShape().length - 1];
+    private void getBiased(ComputationalNode tensor) {
+        int lastDimensionSize = tensor.getValue().getShape()[tensor.getValue().getShape().length - 1];
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) first.getValue().getData();
+        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getValue().getData();
         for (int i = 0; i < oldValues.size(); i++) {
             values.add(oldValues.get(i));
             if ((i + 1) % lastDimensionSize == 0) {
                 values.add(1.0);
             }
         }
-        int[] shape = new int[first.getValue().getShape().length];
+        int[] shape = new int[tensor.getValue().getShape().length];
         for (int i = 0; i < shape.length; i++) {
             if (i == shape.length - 1) {
-                shape[i] = first.getValue().getShape()[i] + 1;
+                shape[i] = tensor.getValue().getShape()[i] + 1;
             } else {
-                shape[i] = first.getValue().getShape()[i];
+                shape[i] = tensor.getValue().getShape()[i];
             }
         }
         Tensor biasedValue = new Tensor(values, shape);
-        first.setValue(biasedValue);
+        tensor.setValue(biasedValue);
     }
 
     /**
      * Perform a forward pass and return predicted class indices.
+     * @return A list of predicted class indices.
      */
     protected ArrayList<Integer> predict() {
         ArrayList<Integer> classLabels = forwardCalculation(false);
@@ -339,6 +358,7 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Perform a forward pass for the training phase.
+     * @return A list of predicted class indices.
      */
     protected ArrayList<Integer> forwardCalculation() {
         return forwardCalculation(true);

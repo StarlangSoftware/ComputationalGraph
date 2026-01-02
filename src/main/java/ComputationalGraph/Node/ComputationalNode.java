@@ -42,7 +42,7 @@ public class ComputationalNode implements Serializable {
     }
 
     /**
-     * Returns a string representation of the node.
+     * @return a string representation of the node.
      */
     @Override
     public String toString() {

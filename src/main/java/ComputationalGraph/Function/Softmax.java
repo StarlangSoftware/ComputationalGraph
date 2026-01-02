@@ -6,10 +6,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Softmax implements Function, Serializable {
-    /**
-     * Implements the Softmax activation function.
-     */
 
+    /**
+     * Computes the Softmax activation for the given tensor.
+     * @param tensor The tensor whose values are to be computed.
+     * @return Softmax(x).
+     */
     @Override
     public Tensor calculate(Tensor tensor) {
         ArrayList<Double> values = new ArrayList<>();
@@ -31,8 +33,10 @@ public class Softmax implements Function, Serializable {
     }
 
     /**
-     * Computes the derivative of the Softmax function.
-     * Assumes `tensor` is the output of softmax(x).
+     * Computes the derivative of the Softmax activation function.
+     * @param tensor output of the Softmax(x).
+     * @param backward Backward tensor.
+     * @return Gradient value of the corresponding node.
      */
     @Override
     public Tensor derivative(Tensor tensor, Tensor backward) {

@@ -10,22 +10,25 @@ public class Dropout implements Function, Serializable {
 
     private final double p;
     private final Random random;
-    private ArrayList<Double> mask;
+    private final ArrayList<Double> mask;
 
     public Dropout(double p, Random random) {
         this.p = p;
         this.random = random;
+        this.mask = new ArrayList<>();
     }
 
     /**
-     * Computes the dropout values for the given tensor.
+     * Computes the dropout values for the given value tensor.
+     * @param value The tensor whose values are to be computed.
+     * @return Output tensor.
      */
     @Override
-    public Tensor calculate(Tensor matrix) {
-        this.mask = new ArrayList<>();
+    public Tensor calculate(Tensor value) {
+        this.mask.clear();
         double multiplier = 1.0 / (1 - p);
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) matrix.getData();
+        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
             double r = random.nextDouble();
             if (r > p) {
@@ -36,11 +39,14 @@ public class Dropout implements Function, Serializable {
                 values.add(0.0);
             }
         }
-        return new Tensor(values, matrix.getShape());
+        return new Tensor(values, value.getShape());
     }
 
     /**
      * Calculates the derivative of the dropout.
+     * @param value output of the dropout function.
+     * @param backward Backward tensor.
+     * @return Gradient value of the corresponding node.
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
