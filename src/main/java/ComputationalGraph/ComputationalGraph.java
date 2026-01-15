@@ -171,6 +171,18 @@ public abstract class ComputationalGraph implements Serializable {
         return axes;
     }
 
+    private Tensor getBiasedPartial(Tensor tensor){
+        int[] endIndexes = new int[tensor.getShape().length];
+        for (int i = 0; i < endIndexes.length; i++) {
+            if (i == endIndexes.length - 1) {
+                endIndexes[i] = tensor.getShape()[i] - 1;
+            } else {
+                endIndexes[i] = tensor.getShape()[i];
+            }
+        }
+        return tensor.partial(new int[tensor.getShape().length], endIndexes);
+    }
+
     /**
      * Calculates the derivative of the child node with respect to the parent node.
      * @param node Parent node.
@@ -184,15 +196,7 @@ public abstract class ComputationalGraph implements Serializable {
         }
         Tensor backward;
         if (child.isBiased()) {
-            int[] endIndexes = new int[child.getBackward().getShape().length];
-            for (int i = 0; i < endIndexes.length; i++) {
-                if (i == endIndexes.length - 1) {
-                    endIndexes[i] = child.getBackward().getShape()[i] - 1;
-                } else {
-                    endIndexes[i] = child.getBackward().getShape()[i];
-                }
-            }
-            backward = child.getBackward().partial(new int[child.getBackward().getShape().length], endIndexes);
+            backward = getBiasedPartial(child.getBackward());
         } else {
             backward = child.getBackward();
         }
@@ -200,15 +204,7 @@ public abstract class ComputationalGraph implements Serializable {
             Function function = child.getFunction();
             Tensor childValue;
             if (child.isBiased()) {
-                int[] endIndexes = new int[child.getValue().getShape().length];
-                for (int i = 0; i < endIndexes.length; i++) {
-                    if (i == endIndexes.length - 1) {
-                        endIndexes[i] = child.getValue().getShape()[i] - 1;
-                    } else {
-                        endIndexes[i] = child.getValue().getShape()[i];
-                    }
-                }
-                childValue = child.getValue().partial(new int[child.getValue().getShape().length], endIndexes);
+                childValue = getBiasedPartial(child.getValue());
             } else {
                 childValue = child.getValue();
             }
