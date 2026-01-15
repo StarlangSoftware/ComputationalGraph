@@ -32,9 +32,12 @@ public class Tanh implements Function, Serializable {
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
-            values.add(1 - oldValue * oldValue);
+        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        for (int i = 0; i < oldValues.size(); i++) {
+            Double oldValue = oldValues.get(i);
+            Double backwardValue = backwardValues.get(i);
+            values.add((1 - oldValue * oldValue) * backwardValue);
         }
-        return backward.hadamardProduct(new Tensor(values, value.getShape()));
+        return new Tensor(values, value.getShape());
     }
 }

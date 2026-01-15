@@ -17,6 +17,13 @@ public class SGDMomentum extends Optimizer implements Serializable {
         this.momentum = momentum;
     }
 
+    /**
+     * Calculates the new gradients by combining the current gradient with the previous velocity.
+     * It updates the internal velocity state and modifies the node's backward tensor
+     * to reflect the momentum-adjusted update step.
+     *
+     * @param node The node whose gradients are to be set.
+     */
     @Override
     protected void setGradients(ComputationalNode node) {
         ArrayList<Double> newValues = new ArrayList<>();

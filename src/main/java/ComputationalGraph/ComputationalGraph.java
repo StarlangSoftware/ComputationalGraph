@@ -171,7 +171,12 @@ public abstract class ComputationalGraph implements Serializable {
         return axes;
     }
 
-    private Tensor getBiasedPartial(Tensor tensor){
+    /**
+     * Removes the bias term from the tensor.
+     * @param tensor for which the bias term needs to be removed.
+     * @return Tensor without bias term.
+     */
+    private Tensor getBiasedPartial(Tensor tensor) {
         int[] endIndexes = new int[tensor.getShape().length];
         for (int i = 0; i < endIndexes.length; i++) {
             if (i == endIndexes.length - 1) {

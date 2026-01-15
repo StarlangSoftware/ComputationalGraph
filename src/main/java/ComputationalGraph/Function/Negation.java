@@ -31,13 +31,10 @@ public class Negation implements Function, Serializable {
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
-        int size = 1;
-        for (int i = 0; i < value.getShape().length; i++) {
-            size *= value.getShape()[i];
+        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        for (Double backwardValue : backwardValues) {
+            values.add(-backwardValue);
         }
-        for (int i = 0; i < size; i++) {
-            values.add(-1.0);
-        }
-        return backward.hadamardProduct(new Tensor(values, value.getShape()));
+        return new Tensor(values, value.getShape());
     }
 }

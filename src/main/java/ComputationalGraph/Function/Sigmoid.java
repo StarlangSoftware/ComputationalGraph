@@ -33,10 +33,13 @@ public class Sigmoid implements Function, Serializable {
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        for (double val : tensorValues) {
+        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        for (int i = 0; i < tensorValues.size(); i++) {
+            double val = tensorValues.get(i);
             double derivative = val * (1 - val);
-            values.add(derivative);
+            double backwardValue = backwardValues.get(i);
+            values.add(derivative * backwardValue);
         }
-        return backward.hadamardProduct(new Tensor(values, value.getShape()));
+        return new Tensor(values, value.getShape());
     }
 }

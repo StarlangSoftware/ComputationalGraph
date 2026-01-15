@@ -32,13 +32,16 @@ public class ReLU implements Function, Serializable {
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
+        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        for (int i = 0; i < oldValues.size(); i++) {
+            Double oldValue = oldValues.get(i);
+            Double backwardValue = backwardValues.get(i);
             if (oldValue > 0) {
-                values.add(1.0);
+                values.add(backwardValue);
             } else {
                 values.add(0.0);
             }
         }
-        return backward.hadamardProduct(new Tensor(values, value.getShape()));
+        return new Tensor(values, value.getShape());
     }
 }
