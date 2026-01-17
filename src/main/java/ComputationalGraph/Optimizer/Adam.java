@@ -8,7 +8,7 @@ import Math.Tensor;
 
 public class Adam extends SGDMomentum implements Serializable {
 
-    private final HashMap<ComputationalNode, ArrayList<Double>> momentumMap;
+    private final HashMap<ComputationalNode, double[]> momentumMap;
     private final double beta2;
     private final double epsilon;
 
@@ -40,23 +40,27 @@ public class Adam extends SGDMomentum implements Serializable {
      */
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> newValuesMomentum = new ArrayList<>();
-        ArrayList<Double> newValuesVelocity = new ArrayList<>();
-        for (int i = 0; i < node.getBackward().getData().size(); i++) {
-            newValuesMomentum.add((1 - momentum) * node.getBackward().getData().get(i));
-            newValuesVelocity.add((1 - beta2) * (node.getBackward().getData().get(i) * node.getBackward().getData().get(i)));
+        int backwardSize = node.getBackward().getData().size();
+        ArrayList<Double> newValuesMomentum = new ArrayList<>(backwardSize);
+        ArrayList<Double> newValuesVelocity = new ArrayList<>(backwardSize);
+        for (int i = 0; i < backwardSize; i++) {
+            double backwardValue = node.getBackward().getData().get(i);
+            newValuesMomentum.add((1 - momentum) * backwardValue);
+            newValuesVelocity.add((1 - beta2) * (backwardValue * backwardValue));
         }
         if (momentumMap.containsKey(node)) {
             for (int i = 0; i < newValuesVelocity.size(); i++) {
-                newValuesVelocity.set(i, newValuesVelocity.get(i) + beta2 * velocityMap.get(node).get(i));
-                newValuesMomentum.set(i, newValuesMomentum.get(i) + momentum * momentumMap.get(node).get(i));
+                newValuesVelocity.set(i, newValuesVelocity.get(i) + beta2 * velocityMap.get(node)[i]);
+                newValuesMomentum.set(i, newValuesMomentum.get(i) + momentum * momentumMap.get(node)[i]);
             }
         }
-        momentumMap.put(node, (ArrayList<Double>) newValuesMomentum.clone());
-        velocityMap.put(node, (ArrayList<Double>) newValuesVelocity.clone());
+        double[] momentumValues = newValuesMomentum.stream().mapToDouble(Double::doubleValue).toArray();
+        double[] velocityValues = newValuesVelocity.stream().mapToDouble(Double::doubleValue).toArray();
+        momentumMap.put(node, momentumValues);
+        velocityMap.put(node, velocityValues);
         newValuesMomentum.replaceAll(value -> value / (1 - momentum));
         newValuesVelocity.replaceAll(value -> value / (1 - beta2));
-        ArrayList<Double> newValues = new ArrayList<>();
+        ArrayList<Double> newValues = new ArrayList<>(newValuesMomentum.size());
         for (int i = 0; i < newValuesMomentum.size(); i++) {
             newValues.add((newValuesMomentum.get(i) / (Math.sqrt(newValuesVelocity.get(i)) + epsilon)) * learningRate);
         }

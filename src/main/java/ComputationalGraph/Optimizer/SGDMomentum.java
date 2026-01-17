@@ -8,7 +8,7 @@ import Math.Tensor;
 
 public class SGDMomentum extends Optimizer implements Serializable {
 
-    protected final HashMap<ComputationalNode, ArrayList<Double>> velocityMap;
+    protected final HashMap<ComputationalNode, double[]> velocityMap;
     protected final double momentum;
 
     public SGDMomentum(double learningRate, double etaDecrease, double momentum) {
@@ -26,16 +26,18 @@ public class SGDMomentum extends Optimizer implements Serializable {
      */
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> newValues = new ArrayList<>();
-        for (int i = 0; i < node.getBackward().getData().size(); i++) {
+        int backwardSize = node.getBackward().getData().size();
+        ArrayList<Double> newValues = new ArrayList<>(backwardSize);
+        for (int i = 0; i < backwardSize; i++) {
             newValues.add((1 - momentum) * node.getBackward().getData().get(i));
         }
         if (velocityMap.containsKey(node)) {
             for (int i = 0; i < newValues.size(); i++) {
-                newValues.set(i, newValues.get(i) + (velocityMap.get(node).get(i) * momentum));
+                newValues.set(i, newValues.get(i) + (velocityMap.get(node)[i] * momentum));
             }
         }
-        velocityMap.put(node, (ArrayList<Double>) newValues.clone());
+        double[] velocity = newValues.stream().mapToDouble(Double::doubleValue).toArray();
+        velocityMap.put(node, velocity);
         newValues.replaceAll(value -> value * learningRate);
         node.setBackward(new Tensor(newValues, node.getBackward().getShape()));
     }

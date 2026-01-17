@@ -231,16 +231,12 @@ public abstract class ComputationalGraph implements Serializable {
                     }
                 }
                 ArrayList<Double> childValues = (ArrayList<Double>) backward.getData(), newValues = new ArrayList<>();
-                int cur = 0;
-                int i = 0;
+                int i = index * dimensions;
                 while (i < childValues.size()) {
-                    if (cur % reverseChildren.size() == index) {
-                        for (int k = 0; k < dimensions; k++) {
-                            newValues.add(childValues.get(i + k));
-                        }
+                    for (int k = 0; k < dimensions; k++) {
+                        newValues.add(childValues.get(i + k));
                     }
-                    cur++;
-                    i += dimensions;
+                    i += reverseChildren.size() * dimensions;
                 }
                 return new Tensor(newValues, shape);
             } else {
