@@ -36,7 +36,10 @@ public class SGDMomentum extends Optimizer implements Serializable {
                 newValues.set(i, newValues.get(i) + (velocityMap.get(node)[i] * momentum));
             }
         }
-        double[] velocity = newValues.stream().mapToDouble(Double::doubleValue).toArray();
+        double[] velocity = new double[backwardSize];
+        for (int i = 0; i < backwardSize; i++) {
+            velocity[i] = newValues.get(i);
+        }
         velocityMap.put(node, velocity);
         newValues.replaceAll(value -> value * learningRate);
         node.setBackward(new Tensor(newValues, node.getBackward().getShape()));

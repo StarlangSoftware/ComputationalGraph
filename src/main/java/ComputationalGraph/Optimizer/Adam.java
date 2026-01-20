@@ -11,12 +11,16 @@ public class Adam extends SGDMomentum implements Serializable {
     private final HashMap<ComputationalNode, double[]> momentumMap;
     private final double beta2;
     private final double epsilon;
+    private double currentBeta1;
+    private double currentBeta2;
 
     public Adam(double learningRate, double etaDecrease, double beta1, double beta2, double epsilon) {
         super(learningRate, etaDecrease, beta1);
         this.momentumMap = new HashMap<>();
         this.beta2 = beta2;
         this.epsilon = epsilon;
+        this.currentBeta1 = 1;
+        this.currentBeta2 = 1;
     }
 
     /**
@@ -38,8 +42,7 @@ public class Adam extends SGDMomentum implements Serializable {
      *
      * @param node The node whose gradients are to be set.
      */
-    @Override
-    protected void setGradients(ComputationalNode node) {
+    protected ArrayList<Double> calculate(ComputationalNode node) {
         int backwardSize = node.getBackward().getData().size();
         ArrayList<Double> newValuesMomentum = new ArrayList<>(backwardSize);
         ArrayList<Double> newValuesVelocity = new ArrayList<>(backwardSize);
@@ -54,16 +57,31 @@ public class Adam extends SGDMomentum implements Serializable {
                 newValuesMomentum.set(i, newValuesMomentum.get(i) + momentum * momentumMap.get(node)[i]);
             }
         }
-        double[] momentumValues = newValuesMomentum.stream().mapToDouble(Double::doubleValue).toArray();
-        double[] velocityValues = newValuesVelocity.stream().mapToDouble(Double::doubleValue).toArray();
+        double[] momentumValues = new double[backwardSize];
+        double[] velocityValues = new double[backwardSize];
+        for (int i = 0; i < backwardSize; i++) {
+            momentumValues[i] = newValuesMomentum.get(i);
+            velocityValues[i] = newValuesVelocity.get(i);
+        }
         momentumMap.put(node, momentumValues);
         velocityMap.put(node, velocityValues);
-        newValuesMomentum.replaceAll(value -> value / (1 - momentum));
-        newValuesVelocity.replaceAll(value -> value / (1 - beta2));
+        this.currentBeta1 *= momentum;
+        this.currentBeta2 *= beta2;
+        newValuesMomentum.replaceAll(value -> value / (1 - this.currentBeta1));
+        newValuesVelocity.replaceAll(value -> value / (1 - this.currentBeta2));
         ArrayList<Double> newValues = new ArrayList<>(newValuesMomentum.size());
         for (int i = 0; i < newValuesMomentum.size(); i++) {
             newValues.add((newValuesMomentum.get(i) / (Math.sqrt(newValuesVelocity.get(i)) + epsilon)) * learningRate);
         }
-        node.setBackward(new Tensor(newValues, node.getBackward().getShape()));
+        return newValues;
+    }
+
+    /**
+     * Sets the gradients for the given node using the Adam optimization algorithm.
+     * @param node The node whose gradients are to be set.
+     */
+    @Override
+    protected void setGradients(ComputationalNode node) {
+        node.setBackward(new Tensor(calculate(node), node.getBackward().getShape()));
     }
 }
