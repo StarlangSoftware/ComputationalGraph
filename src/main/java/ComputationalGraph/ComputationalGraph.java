@@ -158,7 +158,7 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * Swaps last two dimensions of the Tensor.
+     * Swaps the last two dimensions of the Tensor.
      * @param length dimension size.
      */
     private int[] transposeAxes(int length) {
@@ -440,7 +440,7 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * The save method takes a file name as an input and writes model to that file.
+     * The save method takes a file name as an input and writes the model to that file.
      * @param fileName File name.
      */
     public void save(String fileName) {

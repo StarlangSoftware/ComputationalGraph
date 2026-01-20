@@ -84,17 +84,12 @@ public class Adam extends SGDMomentum implements Serializable {
     }
 
     /**
-     * Updates the values of all learnable nodes in the graph.
+     * Updates the values of all learnable nodes and momentum values of the graph.
      * @param nodeMap A map of nodes to their children.
      */
     public void updateValues(HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
         this.currentBeta1 *= momentum;
         this.currentBeta2 *= beta2;
-        HashSet<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : nodeMap.keySet()) {
-            if (!visited.contains(node)) {
-                updateRecursive(visited, node, nodeMap);
-            }
-        }
+        super.updateValues(nodeMap);
     }
 }
