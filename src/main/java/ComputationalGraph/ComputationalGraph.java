@@ -79,6 +79,12 @@ public abstract class ComputationalGraph implements Serializable {
         return newNode;
     }
 
+    /**
+     * Concatenates the given nodes along the given dimension.
+     * @param nodes List of nodes to be concatenated.
+     * @param dimension Dimension along which the nodes need to be concatenated.
+     * @return A new node that connects to the given nodes.
+     */
     protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes, int dimension) {
         ConcatenatedNode newNode = new ConcatenatedNode(dimension);
         for (ComputationalNode node : nodes) {

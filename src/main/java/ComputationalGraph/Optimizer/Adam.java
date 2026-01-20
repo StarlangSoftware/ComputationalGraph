@@ -33,7 +33,7 @@ public class Adam extends SGDMomentum implements Serializable {
      * <li><b>Second Pass (Conditional):</b> If historical data exists, adds the decayed previous
      * momentum and velocity values to the current ones.</li>
      * <li><b>State Update:</b> Stores the raw calculated moments into the history maps.</li>
-     * <li><b>Bias Correction:</b> Normalizes the moments by dividing them by <code>(1 - beta)</code>
+     * <li><b>Bias Correction:</b> Normalizes the moments by dividing them by <code>(1 - (beta)^t)</code>
      * to account for initialization bias.</li>
      * <li><b>Final Pass:</b> Computes the parameter update using the adaptive learning rate formula:
      * <code>(new_momentum / (sqrt(new_velocity) + epsilon)) * learningRate</code>.</li>
