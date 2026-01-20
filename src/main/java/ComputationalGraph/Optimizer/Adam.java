@@ -65,8 +65,6 @@ public class Adam extends SGDMomentum implements Serializable {
         }
         momentumMap.put(node, momentumValues);
         velocityMap.put(node, velocityValues);
-        this.currentBeta1 *= momentum;
-        this.currentBeta2 *= beta2;
         newValuesMomentum.replaceAll(value -> value / (1 - this.currentBeta1));
         newValuesVelocity.replaceAll(value -> value / (1 - this.currentBeta2));
         ArrayList<Double> newValues = new ArrayList<>(newValuesMomentum.size());
@@ -83,5 +81,20 @@ public class Adam extends SGDMomentum implements Serializable {
     @Override
     protected void setGradients(ComputationalNode node) {
         node.setBackward(new Tensor(calculate(node), node.getBackward().getShape()));
+    }
+
+    /**
+     * Updates the values of all learnable nodes in the graph.
+     * @param nodeMap A map of nodes to their children.
+     */
+    public void updateValues(HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
+        this.currentBeta1 *= momentum;
+        this.currentBeta2 *= beta2;
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        for (ComputationalNode node : nodeMap.keySet()) {
+            if (!visited.contains(node)) {
+                updateRecursive(visited, node, nodeMap);
+            }
+        }
     }
 }

@@ -53,7 +53,7 @@ public abstract class Optimizer implements Serializable {
      * @param node The current node being processed.
      * @param nodeMap A map of nodes to their children.
      */
-    private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node, HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
+    protected void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node, HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
         visited.add(node);
         if (node.isLearnable()) {
             int index = broadcast(node);
