@@ -13,6 +13,12 @@ import static org.junit.Assert.*;
 public class ComputationalGraphTest {
 
     @Test
+    public void testLinearPerceptronSingleInput(){
+        LinearPerceptronSingleInput graph = new LinearPerceptronSingleInput();
+        graph.train(new ArrayList<>(), new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), 0));
+    }
+
+    @Test
     public void testNeuralNet() throws FileNotFoundException {
         HashMap<String, Integer> labelMap = new HashMap<>();
         ArrayList<String[]> dataSet = new ArrayList<>();

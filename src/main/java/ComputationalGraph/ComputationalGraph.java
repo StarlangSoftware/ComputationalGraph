@@ -372,7 +372,7 @@ public abstract class ComputationalGraph implements Serializable {
      * @param isDropout Whether to perform dropout or not.
      * @return A list of predicted class indices.
      */
-    private ArrayList<Integer> forwardCalculation(boolean isDropout) {
+    protected ArrayList<Integer> forwardCalculation(boolean isDropout) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         ComputationalNode outputNode = sortedNodes.getFirst();
