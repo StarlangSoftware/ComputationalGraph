@@ -27,6 +27,19 @@ public class MultiplicationNode extends ComputationalNode implements Serializabl
         this.priorityNode = null;
     }
 
+    public MultiplicationNode(boolean learnable, Tensor value) {
+        super(learnable, false);
+        this.value = value;
+        this.priorityNode = null;
+        this.isHadamard = false;
+    }
+
+    public MultiplicationNode(boolean learnable, boolean isBiased) {
+        super(learnable, isBiased);
+        this.isHadamard = false;
+        this.priorityNode = null;
+    }
+
     public boolean isHadamard() {
         return isHadamard;
     }

@@ -369,10 +369,10 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Perform a forward pass through the computational graph.
-     * @param isDropout Whether to perform dropout or not.
+     * @param enableDropout Whether to enable dropout or not.
      * @return A list of predicted class indices.
      */
-    protected ArrayList<Integer> forwardCalculation(boolean isDropout) {
+    private ArrayList<Integer> forwardCalculation(boolean enableDropout) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         ComputationalNode outputNode = sortedNodes.getFirst();
@@ -394,7 +394,7 @@ public abstract class ComputationalGraph implements Serializable {
                             Function function = child.getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (function instanceof Dropout) {
-                                if (isDropout) {
+                                if (enableDropout) {
                                     child.setValue(function.calculate(currentValue));
                                 } else {
                                     child.setValue(new Tensor(currentValue.getData(), currentValue.getShape()));

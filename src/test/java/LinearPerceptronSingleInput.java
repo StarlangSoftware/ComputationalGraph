@@ -32,7 +32,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
         this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});
         input.setValue(createInputTensor(dataTensor));
-        this.forwardCalculation(false);
+        this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));
         this.backpropagation(parameters.getOptimizer(), classList);

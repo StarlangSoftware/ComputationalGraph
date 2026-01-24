@@ -26,23 +26,23 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     @Override
     public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
         // Input Node
-        ComputationalNode input = new MultiplicationNode(false, true, false);
+        ComputationalNode input = new MultiplicationNode(false, true);
         inputNodes.add(input);
         // First layer weights
         Tensor t1 = new Tensor(parameters.getInitialization().initialize(5, 4, new Random(parameters.getSeed())), new int[]{5, 4});
-        ComputationalNode w1 = new MultiplicationNode(true, false, t1, false);
+        ComputationalNode w1 = new MultiplicationNode(true, t1);
         ComputationalNode a1 = this.addEdge(input, w1, false);
         ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), false);
         ComputationalNode a1SigmoidDropout = this.addEdge(a1Sigmoid, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Second layer weights
         Tensor t2 = new Tensor(parameters.getInitialization().initialize(5, 20, new Random(parameters.getSeed())), new int[]{5, 20});
-        ComputationalNode w2 = new MultiplicationNode(true, false, t2, false);
+        ComputationalNode w2 = new MultiplicationNode(true, t2);
         ComputationalNode a2 = this.addEdge(a1SigmoidDropout, w2, false);
         ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
         ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
         Tensor t3 = new Tensor(parameters.getInitialization().initialize(21, 3, new Random(parameters.getSeed())), new int[]{21, 3});
-        ComputationalNode w3 = new MultiplicationNode(true, false, t3, false);
+        ComputationalNode w3 = new MultiplicationNode(true, t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3, false);
         this.addEdge(a3, new Softmax(), false);
         // Training
