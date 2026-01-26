@@ -27,7 +27,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
         ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
         Tensor weightsTensor = new Tensor(Arrays.asList(1.0, 1.0, 1.0, 1.0), new int[]{2, 2});
-        ComputationalNode w = new MultiplicationNode(true, false, weightsTensor, false);
+        ComputationalNode w = new MultiplicationNode(weightsTensor);
         ComputationalNode a = this.addEdge(input, w, false);
         this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});

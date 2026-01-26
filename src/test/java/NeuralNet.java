@@ -32,21 +32,21 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         int numberOfInputUnitsWithBiased = 5;
         int numberOfHiddenUnitsInLayer1 = 4;
         Tensor t1 = new Tensor(parameters.getInitialization().initialize(numberOfInputUnitsWithBiased, numberOfHiddenUnitsInLayer1, new Random(parameters.getSeed())), new int[]{numberOfInputUnitsWithBiased, 4});
-        ComputationalNode w1 = new MultiplicationNode(true, t1);
+        ComputationalNode w1 = new MultiplicationNode(t1);
         ComputationalNode a1 = this.addEdge(input, w1, false);
         ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), false);
         ComputationalNode a1SigmoidDropout = this.addEdge(a1Sigmoid, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Second layer weights
         int numberOfHiddenUnitsInLayer2 = 20;
         Tensor t2 = new Tensor(parameters.getInitialization().initialize(numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2, new Random(parameters.getSeed())), new int[]{numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2});
-        ComputationalNode w2 = new MultiplicationNode(true, t2);
+        ComputationalNode w2 = new MultiplicationNode(t2);
         ComputationalNode a2 = this.addEdge(a1SigmoidDropout, w2, false);
         ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
         ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
         int number_of_classes = 3;
         Tensor t3 = new Tensor(parameters.getInitialization().initialize(numberOfHiddenUnitsInLayer2 + 1, number_of_classes, new Random(parameters.getSeed())), new int[]{21, 3});
-        ComputationalNode w3 = new MultiplicationNode(true, t3);
+        ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3, false);
         this.addEdge(a3, new Softmax(), false);
         // Training
