@@ -25,7 +25,6 @@ public class Adam extends SGDMomentum implements Serializable {
 
     /**
      * Calculates the gradient updates using the Adam optimization algorithm.
-     * <p>
      * This implementation follows a multi-pass approach:
      * <ol>
      * <li><b>First Pass:</b> Calculates the weighted current gradients for both the first moment (momentum)
@@ -38,7 +37,6 @@ public class Adam extends SGDMomentum implements Serializable {
      * <li><b>Final Pass:</b> Computes the parameter update using the adaptive learning rate formula:
      * <code>(new_momentum / (sqrt(new_velocity) + epsilon)) * learningRate</code>.</li>
      * </ol>
-     * </p>
      *
      * @param node The node whose gradients are to be set.
      */
