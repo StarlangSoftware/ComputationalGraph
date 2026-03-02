@@ -48,10 +48,9 @@ public class ReLU implements Function, Serializable {
     }
 
     @Override
-    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+    public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
         ComputationalNode newNode = new FunctionNode(isBiased, this);
-        input.addChild(newNode);
-        newNode.addParent(input);
+        inputNodes.get(0).add(newNode);
         return newNode;
     }
 }

@@ -31,13 +31,15 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         Tensor t1 = new Tensor(parameters.initializeWeights(numberOfInputUnitsWithBiased, numberOfHiddenUnitsInLayer1, new Random(parameters.getSeed())), new int[]{numberOfInputUnitsWithBiased, 4});
         ComputationalNode w1 = new MultiplicationNode(t1);
         ComputationalNode a1 = this.addEdge(input, w1, false);
-        ComputationalNode a1SigmoidDropout = this.addEdge(new Sigmoid().addEdge(a1, false), new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
+        ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), false);
+        ComputationalNode a1SigmoidDropout = this.addEdge(a1Sigmoid, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Second layer weights
         int numberOfHiddenUnitsInLayer2 = 20;
         Tensor t2 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2, new Random(parameters.getSeed())), new int[]{numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2});
         ComputationalNode w2 = new MultiplicationNode(t2);
         ComputationalNode a2 = this.addEdge(a1SigmoidDropout, w2, false);
-        ComputationalNode a2ELUDropout = this.addEdge(new ELU(3.0).addEdge(a2, false), new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
+        ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
+        ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
         int number_of_classes = 3;
         Tensor t3 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer2 + 1, number_of_classes, new Random(parameters.getSeed())), new int[]{21, 3});

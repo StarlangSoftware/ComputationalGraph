@@ -40,21 +40,23 @@ public abstract class ComputationalGraph implements Serializable {
     protected abstract ArrayList<Double> getClassLabels(ComputationalNode outputNode);
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
-        ComputationalNode newNode;
         if (second instanceof Function) {
-            newNode = new FunctionNode(isBiased, (Function) second);
-        } else if (second instanceof MultiplicationNode) {
-            newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard(), first);
+            ArrayList<ComputationalNode> nodes = new ArrayList<>();
+            nodes.add(first);
+            return ((Function) second).addEdge(nodes, isBiased);
         } else {
-            throw new IllegalArgumentException("Illegal Type of Object: second");
-        }
-        first.addChild(newNode);
-        newNode.addParent(first);
-        if (second instanceof ComputationalNode) {
+            ComputationalNode newNode;
+            if (second instanceof MultiplicationNode) {
+                newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard(), first);
+            } else {
+                throw new IllegalArgumentException("Illegal Type of Object: second");
+            }
+            first.addChild(newNode);
+            newNode.addParent(first);
             ((ComputationalNode) second).addChild(newNode);
             newNode.addParent((ComputationalNode) second);
+            return newNode;
         }
-        return newNode;
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {

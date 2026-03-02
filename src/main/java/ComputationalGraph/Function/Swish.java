@@ -5,15 +5,16 @@ import ComputationalGraph.Node.FunctionNode;
 import ComputationalGraph.Node.MultiplicationNode;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Swish extends Sigmoid implements Serializable {
 
-    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+    public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
         ComputationalNode sigmoid = new FunctionNode(false, this);
-        input.add(sigmoid);
+        inputNodes.get(0).add(sigmoid);
         ComputationalNode swish = new MultiplicationNode(false, isBiased, true);
         sigmoid.add(swish);
-        input.add(swish);
+        inputNodes.get(0).add(swish);
         return swish;
     }
 }
