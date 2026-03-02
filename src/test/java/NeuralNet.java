@@ -31,21 +31,21 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         // First layer weights
         int numberOfInputUnitsWithBiased = 5;
         int numberOfHiddenUnitsInLayer1 = 4;
-        Tensor t1 = new Tensor(parameters.getInitialization().initialize(numberOfInputUnitsWithBiased, numberOfHiddenUnitsInLayer1, new Random(parameters.getSeed())), new int[]{numberOfInputUnitsWithBiased, 4});
+        Tensor t1 = new Tensor(parameters.initializeWeights(numberOfInputUnitsWithBiased, numberOfHiddenUnitsInLayer1, new Random(parameters.getSeed())), new int[]{numberOfInputUnitsWithBiased, 4});
         ComputationalNode w1 = new MultiplicationNode(t1);
         ComputationalNode a1 = this.addEdge(input, w1, false);
         ComputationalNode a1Sigmoid = this.addEdge(a1, new Sigmoid(), false);
         ComputationalNode a1SigmoidDropout = this.addEdge(a1Sigmoid, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Second layer weights
         int numberOfHiddenUnitsInLayer2 = 20;
-        Tensor t2 = new Tensor(parameters.getInitialization().initialize(numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2, new Random(parameters.getSeed())), new int[]{numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2});
+        Tensor t2 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2, new Random(parameters.getSeed())), new int[]{numberOfHiddenUnitsInLayer1 + 1, numberOfHiddenUnitsInLayer2});
         ComputationalNode w2 = new MultiplicationNode(t2);
         ComputationalNode a2 = this.addEdge(a1SigmoidDropout, w2, false);
         ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
         ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
         int number_of_classes = 3;
-        Tensor t3 = new Tensor(parameters.getInitialization().initialize(numberOfHiddenUnitsInLayer2 + 1, number_of_classes, new Random(parameters.getSeed())), new int[]{21, 3});
+        Tensor t3 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer2 + 1, number_of_classes, new Random(parameters.getSeed())), new int[]{21, 3});
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3, false);
         this.addEdge(a3, new Softmax(), false);
@@ -77,7 +77,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         int count = 0, total = 0;
         for (Tensor instance : testSet) {
             inputNodes.get(0).setValue(createInputTensor(instance));
-            int classLabel = this.predict().get(0);
+            int classLabel = this.predict().get(0).intValue();
             if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
                 count++;
             }
@@ -87,8 +87,8 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    protected ArrayList<Integer> getClassLabels(ComputationalNode outputNode) {
-        ArrayList<Integer> classLabelIndices = new ArrayList<>();
+    protected ArrayList<Double> getClassLabels(ComputationalNode outputNode) {
+        ArrayList<Double> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
             int cols = outputValue.getShape()[1];
@@ -101,7 +101,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
                     labelIndex = j;
                 }
             }
-            classLabelIndices.add(labelIndex);
+            classLabelIndices.add(labelIndex + 0.0);
         }
         return classLabelIndices;
     }

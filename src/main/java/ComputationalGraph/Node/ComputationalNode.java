@@ -1,44 +1,66 @@
 package ComputationalGraph.Node;
 
-import ComputationalGraph.Function.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class ComputationalNode implements Serializable {
+
     protected Tensor value;
     protected Tensor backward;
-    protected final boolean learnable;
     protected final boolean isBiased;
-    protected final Function function;
+    protected final boolean learnable;
+    private final ArrayList<ComputationalNode> children;
+    private final ArrayList<ComputationalNode> parents;
 
     /**
      * Initializes a ComputationalNode.
-     * @param learnable Indicates whether the node is learnable (e.g., weights)
      * @param isBiased Indicates whether the node is biased
-     * @param function The function (e.g., activation like SIGMOID)
      * @param value The tensor value associated with the node (optional)
      */
-    public ComputationalNode(boolean learnable, boolean isBiased, Function function, Tensor value) {
+    public ComputationalNode(boolean learnable, boolean isBiased, Tensor value) {
         this.value = value;
         this.backward = null;
-        this.learnable = learnable;
         this.isBiased = isBiased;
-        this.function = function;
+        this.learnable = learnable;
+        children = new ArrayList<>();
+        parents = new ArrayList<>();
     }
 
     /**
      * Constructor overload for function type initialization
      */
-    public ComputationalNode(boolean learnable, Function function, boolean isBiased) {
-        this(learnable, isBiased, function, null);
+    public ComputationalNode(boolean learnable, boolean isBiased) {
+        this(learnable, isBiased, null);
     }
 
-    /**
-     * Constructor overload for operator initialization
-     */
-    public ComputationalNode(boolean learnable, boolean isBiased) {
-        this(learnable, isBiased, null, null);
+    public ComputationalNode getChild(int index) {
+        return children.get(index);
+    }
+
+    public void addChild(ComputationalNode child) {
+        children.add(child);
+    }
+
+    public void addParent(ComputationalNode parent) {
+        parents.add(parent);
+    }
+
+    public ComputationalNode getParent(int index) {
+        return parents.get(index);
+    }
+
+    public int childrenSize() {
+        return children.size();
+    }
+
+    public int parentsSize() {
+        return parents.size();
+    }
+
+    public boolean isLearnable() {
+        return learnable;
     }
 
     /**
@@ -47,9 +69,6 @@ public class ComputationalNode implements Serializable {
     @Override
     public String toString() {
         StringBuilder details = new StringBuilder();
-        if (function != null) {
-            details.append("Function: ").append(function);
-        }
         if (value != null) {
             if (details.length() > 0) {
                 details.append(", ");
@@ -70,10 +89,6 @@ public class ComputationalNode implements Serializable {
         return isBiased;
     }
 
-    public Function getFunction() {
-        return function;
-    }
-
     public Tensor getValue() {
         return value;
     }
@@ -84,10 +99,6 @@ public class ComputationalNode implements Serializable {
 
     public void updateValue() {
         this.setValue(value.add(backward));
-    }
-
-    public boolean isLearnable() {
-        return learnable;
     }
 
     public Tensor getBackward() {

@@ -28,7 +28,7 @@ public class MultiplicationNode extends ComputationalNode implements Serializabl
     }
 
     public MultiplicationNode(boolean learnable, Tensor value) {
-        super(learnable, false);
+        super(learnable, false, value);
         this.value = value;
         this.priorityNode = null;
         this.isHadamard = false;
@@ -45,6 +45,25 @@ public class MultiplicationNode extends ComputationalNode implements Serializabl
         super(learnable, isBiased);
         this.isHadamard = false;
         this.priorityNode = null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder details = new StringBuilder();
+        if (value != null) {
+            if (details.length() > 0) {
+                details.append(", ");
+            }
+            details.append("Value Shape: [").append(value.getShape()[0]);
+            for (int i = 1; i < value.getShape().length; i++) {
+                details.append(", ").append(value.getShape()[i]);
+            }
+            details.append("]");
+        }
+        if (details.length() > 0) details.append(", ");
+        details.append("is learnable: ").append(learnable);
+        details.append(", is biased: ").append(isBiased);
+        return "Node(" + details + ")";
     }
 
     public boolean isHadamard() {

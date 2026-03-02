@@ -5,6 +5,9 @@ import ComputationalGraph.Initialization.Initialization;
 import ComputationalGraph.Initialization.RandomInitialization;
 import ComputationalGraph.Optimizer.Optimizer;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 public class NeuralNetworkParameter extends Parameter {
 
     private final Optimizer optimizer;
@@ -44,8 +47,8 @@ public class NeuralNetworkParameter extends Parameter {
         return epoch;
     }
 
-    public Initialization getInitialization() {
-        return initialization;
+    public ArrayList<Double> initializeWeights(int row, int column, Random random) {
+        return initialization.initialize(row, column, random);
     }
 
     public double getDropout() {

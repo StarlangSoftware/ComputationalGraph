@@ -1,11 +1,8 @@
 package ComputationalGraph;
 
 import Classification.Performance.ClassificationPerformance;
-import ComputationalGraph.Function.Dropout;
-import ComputationalGraph.Function.Function;
-import ComputationalGraph.Node.ComputationalNode;
-import ComputationalGraph.Node.ConcatenatedNode;
-import ComputationalGraph.Node.MultiplicationNode;
+import ComputationalGraph.Function.*;
+import ComputationalGraph.Node.*;
 import ComputationalGraph.Optimizer.Optimizer;
 import Math.Tensor;
 
@@ -14,9 +11,8 @@ import java.util.*;
 
 public abstract class ComputationalGraph implements Serializable {
 
-    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap = new HashMap<>();
-    private final HashMap<ComputationalNode, ArrayList<ComputationalNode>> reverseNodeMap = new HashMap<>();
     protected ArrayList<ComputationalNode> inputNodes;
+    private ArrayList<ComputationalNode> leafNodes;
 
     public ComputationalGraph() {
         this.inputNodes = new ArrayList<>();
@@ -39,43 +35,43 @@ public abstract class ComputationalGraph implements Serializable {
     /**
      * Retrieves the class label indexes associated with the given output node in the computational graph.
      * @param outputNode The output node for which the class label indexes are to be retrieved.
-     * @return A list of integers representing the class label indexes.
+     * @return A list of doubles representing the class label indexes.
      */
-    protected abstract ArrayList<Integer> getClassLabels(ComputationalNode outputNode);
+    protected abstract ArrayList<Double> getClassLabels(ComputationalNode outputNode);
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         ComputationalNode newNode;
         if (second instanceof Function) {
-            newNode = new ComputationalNode(false, (Function) second, isBiased);
+            newNode = new FunctionNode(isBiased, (Function) second);
         } else if (second instanceof MultiplicationNode) {
             newNode = new MultiplicationNode(false, isBiased, ((MultiplicationNode) second).isHadamard(), first);
         } else {
             throw new IllegalArgumentException("Illegal Type of Object: second");
         }
-        nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
-        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
+        first.addChild(newNode);
+        newNode.addParent(first);
         if (second instanceof ComputationalNode) {
-            nodeMap.computeIfAbsent((ComputationalNode) second, k -> new ArrayList<>()).add(newNode);
-            reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add((ComputationalNode) second);
+            ((ComputationalNode) second).addChild(newNode);
+            newNode.addParent((ComputationalNode) second);
         }
         return newNode;
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
         ComputationalNode newNode = new MultiplicationNode(false, isBiased, isHadamard, first);
-        nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
-        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
-        nodeMap.computeIfAbsent(second, k -> new ArrayList<>()).add(newNode);
-        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(second);
+        first.addChild(newNode);
+        newNode.addParent(first);
+        second.addChild(newNode);
+        newNode.addParent(second);
         return newNode;
     }
 
     protected ComputationalNode addAdditionEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
-        ComputationalNode newNode = new ComputationalNode(false, null, isBiased);
-        nodeMap.computeIfAbsent(first, k -> new ArrayList<>()).add(newNode);
-        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(first);
-        nodeMap.computeIfAbsent(second, k -> new ArrayList<>()).add(newNode);
-        reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(second);
+        ComputationalNode newNode = new ComputationalNode(false, isBiased);
+        first.addChild(newNode);
+        newNode.addParent(first);
+        second.addChild(newNode);
+        newNode.addParent(second);
         return newNode;
     }
 
@@ -88,8 +84,8 @@ public abstract class ComputationalGraph implements Serializable {
     protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes, int dimension) {
         ConcatenatedNode newNode = new ConcatenatedNode(dimension);
         for (ComputationalNode node : nodes) {
-            nodeMap.computeIfAbsent(node, k -> new ArrayList<>()).add(newNode);
-            reverseNodeMap.computeIfAbsent(newNode, k -> new ArrayList<>()).add(node);
+            node.addChild(newNode);
+            newNode.addParent(node);
             newNode.addNode(node);
         }
         return newNode;
@@ -104,11 +100,10 @@ public abstract class ComputationalGraph implements Serializable {
     private LinkedList<ComputationalNode> sortRecursive(ComputationalNode node, HashSet<ComputationalNode> visited) {
         LinkedList<ComputationalNode> queue = new LinkedList<>();
         visited.add(node);
-        if (nodeMap.containsKey(node)) {
-            for (ComputationalNode child : nodeMap.get(node)) {
-                if (!visited.contains(child)) {
-                    queue.addAll(sortRecursive(child, visited));
-                }
+        for (int i = 0; i < node.childrenSize(); i++) {
+            ComputationalNode child = node.getChild(i);
+            if (!visited.contains(child)) {
+                queue.addAll(sortRecursive(child, visited));
             }
         }
         queue.offer(node);
@@ -122,7 +117,7 @@ public abstract class ComputationalGraph implements Serializable {
     private LinkedList<ComputationalNode> topologicalSort() {
         LinkedList<ComputationalNode> sortedList = new LinkedList<>();
         HashSet<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : nodeMap.keySet()) {
+        for (ComputationalNode node : leafNodes) {
             if (!visited.contains(node)) {
                 LinkedList<ComputationalNode> queue = sortRecursive(node, visited);
                 while (!queue.isEmpty()) {
@@ -142,11 +137,10 @@ public abstract class ComputationalGraph implements Serializable {
             node.setValue(null);
         }
         node.setBackward(null);
-        if (nodeMap.containsKey(node)) {
-            for (ComputationalNode child : nodeMap.get(node)) {
-                if (!visited.contains(child)) {
-                    clearRecursive(visited, child);
-                }
+        for (int i = 0; i < node.childrenSize(); i++) {
+            ComputationalNode child = node.getChild(i);
+            if (!visited.contains(child)) {
+                clearRecursive(visited, child);
             }
         }
     }
@@ -156,7 +150,7 @@ public abstract class ComputationalGraph implements Serializable {
      */
     private void clear() {
         HashSet<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : nodeMap.keySet()) {
+        for (ComputationalNode node : leafNodes) {
             if (!visited.contains(node)) {
                 clearRecursive(visited, node);
             }
@@ -201,8 +195,7 @@ public abstract class ComputationalGraph implements Serializable {
      * @return The gradient tensor.
      */
     private Tensor calculateDerivative(ComputationalNode node, ComputationalNode child) {
-        ArrayList<ComputationalNode> reverseChildren = reverseNodeMap.get(child);
-        if (reverseChildren == null || reverseChildren.isEmpty()) {
+        if (child.parentsSize() == 0) {
             return null;
         }
         Tensor backward;
@@ -211,8 +204,8 @@ public abstract class ComputationalGraph implements Serializable {
         } else {
             backward = child.getBackward();
         }
-        if (child.getFunction() != null) {
-            Function function = child.getFunction();
+        if (child instanceof FunctionNode) {
+            Function function = ((FunctionNode) child).getFunction();
             Tensor childValue;
             if (child.isBiased()) {
                 childValue = getBiasedPartial(child.getValue());
@@ -223,7 +216,7 @@ public abstract class ComputationalGraph implements Serializable {
         } else {
             if (child instanceof ConcatenatedNode) {
                 int index = ((ConcatenatedNode) child).getIndex(node);
-                int blockSize = backward.getShape()[((ConcatenatedNode) child).getDimension()] / reverseChildren.size();
+                int blockSize = backward.getShape()[((ConcatenatedNode) child).getDimension()] / child.parentsSize();
                 int dimensions = blockSize;
                 int[] shape = new int[backward.getShape().length];
                 for (int i = 0; i < backward.getShape().length; i++) {
@@ -242,13 +235,13 @@ public abstract class ComputationalGraph implements Serializable {
                     for (int k = 0; k < dimensions; k++) {
                         newValues.add(childValues.get(i + k));
                     }
-                    i += reverseChildren.size() * dimensions;
+                    i += child.parentsSize() * dimensions;
                 }
                 return new Tensor(newValues, shape);
             } else {
                 if (child instanceof MultiplicationNode) {
-                    ComputationalNode left = reverseChildren.get(0);
-                    ComputationalNode right = reverseChildren.get(1);
+                    ComputationalNode left = child.getParent(0);
+                    ComputationalNode right = child.getParent(1);
                     if (left == node) {
                         Tensor rightValue = right.getValue();
                         if (((MultiplicationNode) child).isHadamard()) {
@@ -305,9 +298,9 @@ public abstract class ComputationalGraph implements Serializable {
         }
         while (!sortedNodes.isEmpty()) {
             ComputationalNode node = sortedNodes.remove(0);
-            ArrayList<ComputationalNode> children = nodeMap.get(node);
-            if (children != null) {
-                for (ComputationalNode child : children) {
+            if (node.childrenSize() > 0) {
+                for (int i = 0; i < node.childrenSize(); i++) {
+                    ComputationalNode child = node.getChild(i);
                     Tensor derivative = calculateDerivative(node, child);
                     if (derivative != null) {
                         if (node.getBackward() == null) {
@@ -319,7 +312,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        optimizer.updateValues(this.nodeMap);
+        optimizer.updateValues(this.leafNodes);
         clear();
     }
 
@@ -353,8 +346,8 @@ public abstract class ComputationalGraph implements Serializable {
      * Perform a forward pass and return predicted class indices.
      * @return A list of predicted class indices.
      */
-    protected ArrayList<Integer> predict() {
-        ArrayList<Integer> classLabels = forwardCalculation(false);
+    protected ArrayList<Double> predict() {
+        ArrayList<Double> classLabels = forwardCalculation(false);
         clear();
         return classLabels;
     }
@@ -363,8 +356,41 @@ public abstract class ComputationalGraph implements Serializable {
      * Perform a forward pass for the training phase.
      * @return A list of predicted class indices.
      */
-    protected ArrayList<Integer> forwardCalculation() {
+    protected ArrayList<Double> forwardCalculation() {
+        if (leafNodes == null) {
+            leafNodes = findLeafNodes();
+        }
         return forwardCalculation(true);
+    }
+
+    private ComputationalNode findOutputNode(ComputationalNode node) {
+        if (node.childrenSize() == 0) {
+            return node;
+        } else {
+            return findOutputNode(node.getChild(0));
+        }
+    }
+
+    private ArrayList<ComputationalNode> findLeafNodes() {
+        ArrayList<ComputationalNode> leafNodes = new ArrayList<>();
+        ComputationalNode outputNode = findOutputNode(inputNodes.get(0));
+        ArrayList<ComputationalNode> queue = new ArrayList<>();
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        queue.add(outputNode);
+        while (!queue.isEmpty()) {
+            ComputationalNode currentNode = queue.remove(0);
+            if (currentNode.parentsSize() == 0) {
+                leafNodes.add(currentNode);
+            }
+            for (int i = 0; i < currentNode.parentsSize(); i++) {
+                ComputationalNode parent = currentNode.getParent(i);
+                if (!visited.contains(parent)) {
+                    visited.add(parent);
+                    queue.add(parent);
+                }
+            }
+        }
+        return leafNodes;
     }
 
     /**
@@ -372,7 +398,7 @@ public abstract class ComputationalGraph implements Serializable {
      * @param enableDropout Whether to enable dropout or not.
      * @return A list of predicted class indices.
      */
-    private ArrayList<Integer> forwardCalculation(boolean enableDropout) {
+    private ArrayList<Double> forwardCalculation(boolean enableDropout) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         ComputationalNode outputNode = sortedNodes.getFirst();
@@ -386,12 +412,12 @@ public abstract class ComputationalGraph implements Serializable {
             if (currentNode.getValue() == null) {
                 throw new IllegalArgumentException("Current node's value is null");
             }
-            ArrayList<ComputationalNode> children = nodeMap.get(currentNode);
-            if (children != null) {
-                for (ComputationalNode child : children) {
+            if (currentNode.childrenSize() > 0) {
+                for (int t = 0; t < currentNode.childrenSize(); t++) {
+                    ComputationalNode child = currentNode.getChild(t);
                     if (child.getValue() == null) {
-                        if (child.getFunction() != null) {
-                            Function function = child.getFunction();
+                        if (child instanceof FunctionNode) {
+                            Function function = ((FunctionNode) child).getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (function instanceof Dropout) {
                                 if (enableDropout) {
@@ -405,14 +431,14 @@ public abstract class ComputationalGraph implements Serializable {
                         } else {
                             if (child instanceof ConcatenatedNode) {
                                 if (!concatenatedNodeMap.containsKey(child)) {
-                                    concatenatedNodeMap.put(child, new ComputationalNode[reverseNodeMap.get(child).size()]);
+                                    concatenatedNodeMap.put(child, new ComputationalNode[child.parentsSize()]);
                                 }
                                 concatenatedNodeMap.get(child)[((ConcatenatedNode) child).getIndex(currentNode)] = currentNode;
                                 if (!counterMap.containsKey(child)) {
                                     counterMap.put(child, 0);
                                 }
                                 counterMap.put(child, counterMap.get(child) + 1);
-                                if (reverseNodeMap.get(child).size() == counterMap.get(child)) {
+                                if (child.parentsSize() == counterMap.get(child)) {
                                     child.setValue(concatenatedNodeMap.get(child)[0].getValue());
                                     for (int i = 1; i < concatenatedNodeMap.get(child).length; i++) {
                                         child.setValue(child.getValue().concat(concatenatedNodeMap.get(child)[i].getValue(), ((ConcatenatedNode) child).getDimension()));

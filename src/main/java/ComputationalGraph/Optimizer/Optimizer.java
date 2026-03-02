@@ -51,9 +51,8 @@ public abstract class Optimizer implements Serializable {
      * Recursive helper function to update the values of learnable nodes.
      * @param visited A set of visited nodes.
      * @param node The current node being processed.
-     * @param nodeMap A map of nodes to their children.
      */
-    private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node, HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
+    private void updateRecursive(HashSet<ComputationalNode> visited, ComputationalNode node) {
         visited.add(node);
         if (node.isLearnable()) {
             int index = broadcast(node);
@@ -80,11 +79,10 @@ public abstract class Optimizer implements Serializable {
             this.setGradients(node);
             node.updateValue();
         }
-        if (nodeMap.containsKey(node)) {
-            for (ComputationalNode child : nodeMap.get(node)) {
-                if (!visited.contains(child)) {
-                    updateRecursive(visited, child, nodeMap);
-                }
+        for (int t = 0; t < node.childrenSize(); t++) {
+            ComputationalNode child = node.getChild(t);
+            if (!visited.contains(child)) {
+                updateRecursive(visited, child);
             }
         }
     }
@@ -97,13 +95,13 @@ public abstract class Optimizer implements Serializable {
 
     /**
      * Updates the values of all learnable nodes in the graph.
-     * @param nodeMap A map of nodes to their children.
+     * @param leafNodes input nodes of the graph.
      */
-    public void updateValues(HashMap<ComputationalNode, ArrayList<ComputationalNode>> nodeMap) {
+    public void updateValues(ArrayList<ComputationalNode> leafNodes) {
         HashSet<ComputationalNode> visited = new HashSet<>();
-        for (ComputationalNode node : nodeMap.keySet()) {
+        for (ComputationalNode node : leafNodes) {
             if (!visited.contains(node)) {
-                updateRecursive(visited, node, nodeMap);
+                updateRecursive(visited, node);
             }
         }
     }
