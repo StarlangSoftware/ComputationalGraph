@@ -1,5 +1,7 @@
 package ComputationalGraph.Function;
 
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
 import java.io.Serializable;
@@ -51,5 +53,13 @@ public class Dropout implements Function, Serializable {
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
         return backward.hadamardProduct(new Tensor(mask, value.getShape()));
+    }
+
+    @Override
+    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        input.addChild(newNode);
+        newNode.addParent(input);
+        return newNode;
     }
 }

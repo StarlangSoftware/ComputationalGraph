@@ -1,5 +1,7 @@
 package ComputationalGraph.Function;
 
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
 import java.io.Serializable;
@@ -43,5 +45,13 @@ public class ReLU implements Function, Serializable {
             }
         }
         return new Tensor(values, value.getShape());
+    }
+
+    @Override
+    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        input.addChild(newNode);
+        newNode.addParent(input);
+        return newNode;
     }
 }

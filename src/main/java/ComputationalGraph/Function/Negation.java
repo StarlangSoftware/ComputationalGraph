@@ -3,6 +3,8 @@ package ComputationalGraph.Function;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.*;
 
 public class Negation implements Function, Serializable {
@@ -36,5 +38,13 @@ public class Negation implements Function, Serializable {
             values.add(-backwardValue);
         }
         return new Tensor(values, value.getShape());
+    }
+
+    @Override
+    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        input.addChild(newNode);
+        newNode.addParent(input);
+        return newNode;
     }
 }

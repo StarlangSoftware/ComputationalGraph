@@ -1,5 +1,7 @@
 package ComputationalGraph.Function;
 
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
 import java.io.Serializable;
@@ -56,5 +58,13 @@ public class Softmax implements Function, Serializable {
             }
         }
         return tensor.hadamardProduct(new Tensor(values, tensor.getShape()));
+    }
+
+    @Override
+    public ComputationalNode addEdge(ComputationalNode input, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        input.addChild(newNode);
+        newNode.addParent(input);
+        return newNode;
     }
 }
