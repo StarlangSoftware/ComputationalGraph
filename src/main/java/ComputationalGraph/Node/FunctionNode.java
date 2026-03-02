@@ -35,7 +35,7 @@ public class FunctionNode extends ComputationalNode implements Serializable {
             details.append("]");
         }
         details.append(", is biased: ").append(isBiased);
-        return "Node(" + details + ")";
+        return "FunctionNode(" + details + ")";
     }
 
     public Function getFunction() {

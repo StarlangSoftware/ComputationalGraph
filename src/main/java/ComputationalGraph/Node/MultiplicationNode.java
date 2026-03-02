@@ -63,7 +63,7 @@ public class MultiplicationNode extends ComputationalNode implements Serializabl
         if (details.length() > 0) details.append(", ");
         details.append("is learnable: ").append(learnable);
         details.append(", is biased: ").append(isBiased);
-        return "Node(" + details + ")";
+        return "MultiplicationNode(" + details + ")";
     }
 
     public boolean isHadamard() {

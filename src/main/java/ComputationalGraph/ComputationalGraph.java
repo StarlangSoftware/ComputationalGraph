@@ -363,6 +363,12 @@ public abstract class ComputationalGraph implements Serializable {
         return forwardCalculation(true);
     }
 
+    /**
+     * Recursively finds and returns the output node of the computational graph.
+     * The output node is defined as a node that does not have any children.
+     * @param node The starting computational node from which the search begins.
+     * @return The output node, which is a node with no children.
+     */
     private ComputationalNode findOutputNode(ComputationalNode node) {
         if (node.childrenSize() == 0) {
             return node;
@@ -371,6 +377,11 @@ public abstract class ComputationalGraph implements Serializable {
         }
     }
 
+    /**
+     * Identifies and returns all the leaf nodes in the computational graph.
+     * A leaf node is defined as a node that does not have any parent nodes.
+     * @return A list of leaf nodes in the computational graph, represented as an {@link ArrayList} of ComputationalNode objects.
+     */
     private ArrayList<ComputationalNode> findLeafNodes() {
         ArrayList<ComputationalNode> leafNodes = new ArrayList<>();
         ComputationalNode outputNode = findOutputNode(inputNodes.get(0));
