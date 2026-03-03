@@ -35,6 +35,10 @@ public class ComputationalNode implements Serializable {
         this(learnable, isBiased, null);
     }
 
+    public ComputationalNode() {
+        this(false, false);
+    }
+
     public ComputationalNode getChild(int index) {
         return children.get(index);
     }

@@ -12,6 +12,10 @@ import java.util.*;
 
 public class NeuralNet extends ComputationalGraph implements Serializable {
 
+    public NeuralNet(NeuralNetworkParameter parameters) {
+        super(parameters);
+    }
+
     private Tensor createInputTensor(Tensor instance) {
         ArrayList<Double> data = new ArrayList<>();
         for (int i = 0; i < instance.getShape()[0] - 1; i++) {
@@ -20,11 +24,26 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         return new Tensor(data, new int[]{1, instance.getShape()[0] - 1});
     }
 
+    private Tensor setClassLabelNode(int n, int classLabel) {
+        ArrayList<Double> data = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (i == classLabel) {
+                data.add(1.0);
+            } else {
+                data.add(0.0);
+            }
+        }
+        return new Tensor(data, new int[]{1, n});
+    }
+
     @Override
-    public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
+    public void train(ArrayList<Tensor> trainSet) {
+        NeuralNetworkParameter parameters = this.getParameters();
         // Input Node
         ComputationalNode input = new MultiplicationNode(false, true);
+        ComputationalNode classLabelNode = new ComputationalNode();
         inputNodes.add(input);
+        inputNodes.add(classLabelNode);
         // First layer weights
         int numberOfInputUnitsWithBiased = 5;
         int numberOfHiddenUnitsInLayer1 = 4;
@@ -41,13 +60,16 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode a2ELU = this.addEdge(a2, new ELU(3.0), false);
         ComputationalNode a2ELUDropout = this.addEdge(a2ELU, new Dropout(parameters.getDropout(), new Random(parameters.getSeed())), true);
         // Output layer weights
-        int number_of_classes = 3;
-        Tensor t3 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer2 + 1, number_of_classes, new Random(parameters.getSeed())), new int[]{21, 3});
+        int numberOfClasses = 3;
+        Tensor t3 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer2 + 1, numberOfClasses, new Random(parameters.getSeed())), new int[]{21, 3});
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3, false);
-        this.addEdge(a3, new Softmax(), false);
+        this.outputNode = this.addEdge(a3, new Softmax(), false);
+        ArrayList<ComputationalNode> nodes = new ArrayList<>();
+        nodes.add(this.outputNode);
+        nodes.add(classLabelNode);
+        this.addFunctionEdge(nodes, parameters.getLossFunction(), false);
         // Training
-        ArrayList<Integer> classList = new ArrayList<>();
         for (int i = 0; i < parameters.getEpoch(); i++) {
             // Shuffle
             Random random = new Random(parameters.getSeed());
@@ -60,10 +82,9 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
             }
             for (Tensor instance : trainSet) {
                 input.setValue(createInputTensor(instance));
+                classLabelNode.setValue(setClassLabelNode(numberOfClasses, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
                 this.forwardCalculation();
-                classList.add((int) instance.getValue(new int[]{instance.getShape()[0] - 1}));
-                this.backpropagation(parameters.getOptimizer(), classList);
-                classList.clear();
+                this.backpropagation(parameters.getOptimizer());
             }
             parameters.getOptimizer().setLearningRate();
         }
@@ -74,6 +95,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         int count = 0, total = 0;
         for (Tensor instance : testSet) {
             inputNodes.get(0).setValue(createInputTensor(instance));
+            inputNodes.get(1).setValue(setClassLabelNode(3, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
             int classLabel = this.predict().get(0).intValue();
             if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
                 count++;

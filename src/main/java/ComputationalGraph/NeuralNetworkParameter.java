@@ -1,6 +1,8 @@
 package ComputationalGraph;
 
 import Classification.Parameter.Parameter;
+import ComputationalGraph.Function.CrossEntropyLoss;
+import ComputationalGraph.Function.Function;
 import ComputationalGraph.Initialization.Initialization;
 import ComputationalGraph.Initialization.RandomInitialization;
 import ComputationalGraph.Optimizer.Optimizer;
@@ -14,13 +16,15 @@ public class NeuralNetworkParameter extends Parameter {
     private final int epoch;
     private final Initialization initialization;
     private final double dropout;
+    private final Function lossFunction;
 
-    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Initialization initialization, double dropout) {
+    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Initialization initialization, Function lossFunction, double dropout) {
         super(seed);
         this.optimizer = optimizer;
         this.epoch = epoch;
         this.initialization = initialization;
         this.dropout = dropout;
+        this.lossFunction = lossFunction;
     }
 
     public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer) {
@@ -29,14 +33,16 @@ public class NeuralNetworkParameter extends Parameter {
         this.epoch = epoch;
         this.initialization = new RandomInitialization();
         this.dropout = 0.0;
+        this.lossFunction = new CrossEntropyLoss();
     }
 
-    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, double dropout) {
+    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Function lossFunction, double dropout) {
         super(seed);
         this.optimizer = optimizer;
         this.epoch = epoch;
         this.initialization = new RandomInitialization();
         this.dropout = dropout;
+        this.lossFunction = lossFunction;
     }
 
     public Optimizer getOptimizer() {
@@ -53,5 +59,9 @@ public class NeuralNetworkParameter extends Parameter {
 
     public double getDropout() {
         return dropout;
+    }
+
+    public Function getLossFunction() {
+        return lossFunction;
     }
 }

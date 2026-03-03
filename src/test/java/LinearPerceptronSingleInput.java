@@ -14,6 +14,10 @@ import ComputationalGraph.*;
 
 public class LinearPerceptronSingleInput extends ComputationalGraph implements Serializable {
 
+    public LinearPerceptronSingleInput(NeuralNetworkParameter parameters) {
+        super(parameters);
+    }
+
     private Tensor createInputTensor(Tensor instance) {
         ArrayList<Double> data = new ArrayList<>();
         for (int i = 0; i < instance.getShape()[0] - 1; i++) {
@@ -23,19 +27,20 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
     }
 
     @Override
-    public void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters) {
+    public void train(ArrayList<Tensor> trainSet) {
+        NeuralNetworkParameter parameters = this.getParameters();
         ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
         Tensor weightsTensor = new Tensor(Arrays.asList(1.0, 1.0, 1.0, 1.0), new int[]{2, 2});
         ComputationalNode w = new MultiplicationNode(weightsTensor);
         ComputationalNode a = this.addEdge(input, w, false);
-        this.addEdge(a, new Softmax(), false);
+        this.outputNode = this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});
         input.setValue(createInputTensor(dataTensor));
         this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));
-        this.backpropagation(parameters.getOptimizer(), classList);
+        this.backpropagation(parameters.getOptimizer());
     }
 
     @Override

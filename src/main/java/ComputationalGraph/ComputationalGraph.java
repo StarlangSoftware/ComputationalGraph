@@ -11,19 +11,25 @@ import java.util.*;
 
 public abstract class ComputationalGraph implements Serializable {
 
+    protected ComputationalNode outputNode;
     protected ArrayList<ComputationalNode> inputNodes;
     private ArrayList<ComputationalNode> leafNodes;
+    private final NeuralNetworkParameter parameters;
 
-    public ComputationalGraph() {
+    public ComputationalGraph(NeuralNetworkParameter parameters) {
         this.inputNodes = new ArrayList<>();
+        this.parameters = parameters;
+    }
+
+    protected NeuralNetworkParameter getParameters() {
+        return parameters;
     }
 
     /**
      * Trains the computational graph using the given training set and parameters.
      * @param trainSet The training set.
-     * @param parameters The parameters of the computational graph.
      */
-    public abstract void train(ArrayList<Tensor> trainSet, NeuralNetworkParameter parameters);
+    public abstract void train(ArrayList<Tensor> trainSet);
 
     /**
      * Tests the computational graph on the given test set.
@@ -270,38 +276,18 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * Computes the difference between the predicted and actual values (R - Y).
-     * @param output The output node of the computational graph.
-     * @param classLabelIndex A list of true class labels (index of the correct class for each sample).
-     */
-    private void calculateRMinusY(ComputationalNode output, ArrayList<Integer> classLabelIndex) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> outputValues = (ArrayList<Double>) output.getValue().getData();
-        int lastDimension = output.getValue().getShape()[output.getValue().getShape().length - 1];
-        for (int i = 0; i < outputValues.size(); i++) {
-            if (i % lastDimension == classLabelIndex.get(i / lastDimension)) {
-                values.add(1 - outputValues.get(i));
-            } else {
-                values.add(-outputValues.get(i));
-            }
-        }
-        Tensor backward = new Tensor(values, output.getValue().getShape());
-        output.setBackward(backward);
-    }
-
-    /**
      * Performs backpropagation on the computational graph.
      * @param optimizer Optimizer to be used for updating the values.
-     * @param classLabelIndex The true class labels (as a list of integers).
      */
-    protected void backpropagation(Optimizer optimizer, ArrayList<Integer> classLabelIndex) {
+    protected void backpropagation(Optimizer optimizer) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
-        calculateRMinusY(outputNode, classLabelIndex);
-        if (!sortedNodes.isEmpty()) {
-            sortedNodes.remove(0).setBackward(outputNode.getBackward());
+        ArrayList<Double> backward = new ArrayList<>();
+        for (int i = 0; i < outputNode.getValue().getData().size(); i++) {
+            backward.add(1.0);
         }
+        outputNode.setBackward(new Tensor(backward, outputNode.getValue().getShape()));
         while (!sortedNodes.isEmpty()) {
             ComputationalNode node = sortedNodes.remove(0);
             if (node.childrenSize() > 0) {
@@ -418,7 +404,6 @@ public abstract class ComputationalGraph implements Serializable {
     private ArrayList<Double> forwardCalculation(boolean enableDropout) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
-        ComputationalNode outputNode = sortedNodes.getFirst();
         HashMap<ComputationalNode, ComputationalNode[]> concatenatedNodeMap = new HashMap<>();
         HashMap<ComputationalNode, Integer> counterMap = new HashMap<>();
         while (sortedNodes.size() > 1) {

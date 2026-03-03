@@ -1,5 +1,6 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
+import ComputationalGraph.Function.CrossEntropyLoss;
 import ComputationalGraph.Optimizer.*;
 import org.junit.Test;
 import Math.*;
@@ -14,8 +15,8 @@ public class ComputationalGraphTest {
 
     @Test
     public void testLinearPerceptronSingleInput(){
-        LinearPerceptronSingleInput graph = new LinearPerceptronSingleInput();
-        graph.train(new ArrayList<>(), new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), 0));
+        LinearPerceptronSingleInput graph = new LinearPerceptronSingleInput(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
+        graph.train(new ArrayList<>());
     }
 
     @Test
@@ -50,8 +51,8 @@ public class ComputationalGraphTest {
                 trainList.add(new Tensor(values, new int[]{values.size()}));
             }
         }
-        NeuralNet graph = new NeuralNet();
-        graph.train(trainList, new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), 0));
+        NeuralNet graph = new NeuralNet(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), new CrossEntropyLoss(), 0));
+        graph.train(trainList);
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
         assertEquals(1.0, performance.getAccuracy(), 0.01);
