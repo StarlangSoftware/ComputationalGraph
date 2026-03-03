@@ -284,8 +284,12 @@ public abstract class ComputationalGraph implements Serializable {
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
         ArrayList<Double> backward = new ArrayList<>();
+        int n = 1;
+        for (int i = 0; i < outputNode.getValue().getShape().length - 1; i++) {
+            n *= outputNode.getValue().getShape()[i];
+        }
         for (int i = 0; i < outputNode.getValue().getData().size(); i++) {
-            backward.add(1.0);
+            backward.add(1.0 / n);
         }
         outputNode.setBackward(new Tensor(backward, outputNode.getValue().getShape()));
         while (!sortedNodes.isEmpty()) {
