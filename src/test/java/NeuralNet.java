@@ -95,7 +95,6 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         int count = 0, total = 0;
         for (Tensor instance : testSet) {
             inputNodes.get(0).setValue(createInputTensor(instance));
-            inputNodes.get(1).setValue(setClassLabelNode(3, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
             int classLabel = this.predict().get(0).intValue();
             if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
                 count++;

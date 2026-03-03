@@ -415,6 +415,9 @@ public abstract class ComputationalGraph implements Serializable {
                 throw new IllegalArgumentException("Current node's value is null");
             }
             if (currentNode.childrenSize() > 0) {
+                if (currentNode.equals(outputNode) && !enableDropout) {
+                    break;
+                }
                 for (int t = 0; t < currentNode.childrenSize(); t++) {
                     ComputationalNode child = currentNode.getChild(t);
                     if (child.getValue() == null) {
