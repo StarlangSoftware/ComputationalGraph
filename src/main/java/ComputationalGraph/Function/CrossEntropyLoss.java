@@ -11,7 +11,7 @@ public class CrossEntropyLoss extends Logarithm implements Serializable {
 
     @Override
     public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
-        ComputationalNode logy = new FunctionNode(isBiased, this);
+        ComputationalNode logy = new FunctionNode(false, this);
         inputNodes.get(0).add(logy);
         ComputationalNode ylogy = new MultiplicationNode(false, isBiased, true);
         inputNodes.get(1).add(ylogy);
