@@ -33,11 +33,11 @@ public abstract class ComputationalGraph implements Serializable {
     public abstract ClassificationPerformance test(ArrayList<Tensor> testSet);
 
     /**
-     * Retrieves the class label indexes associated with the given output node in the computational graph.
-     * @param outputNode The output node for which the class label indexes are to be retrieved.
-     * @return A list of doubles representing the class label indexes.
+     * Retrieves the output value(s) of the given output node in the computational graph.
+     * @param outputNode The output node for which the output value(s) are to be retrieved.
+     * @return A list of doubles representing the output value(s) of the output node.
      */
-    protected abstract ArrayList<Double> getClassLabels(ComputationalNode outputNode);
+    protected abstract ArrayList<Double> getOutputValue(ComputationalNode outputNode);
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         if (second instanceof Function) {
@@ -57,6 +57,10 @@ public abstract class ComputationalGraph implements Serializable {
             newNode.addParent((ComputationalNode) second);
             return newNode;
         }
+    }
+
+    protected ComputationalNode addFunctionEdge(ArrayList<ComputationalNode> inputNodes, Function second, boolean isBiased) {
+        return second.addEdge(inputNodes, isBiased);
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
@@ -481,7 +485,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        return getClassLabels(outputNode);
+        return getOutputValue(outputNode);
     }
 
     /**

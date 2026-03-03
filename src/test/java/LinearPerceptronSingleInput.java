@@ -44,7 +44,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
     }
 
     @Override
-    protected ArrayList<Double> getClassLabels(ComputationalNode outputNode) {
+    protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
         return null;
     }
 }
