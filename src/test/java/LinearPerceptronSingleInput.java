@@ -40,7 +40,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
         this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));
-        this.backpropagation(parameters.getOptimizer());
+        this.backpropagation();
     }
 
     @Override

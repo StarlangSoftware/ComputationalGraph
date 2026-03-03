@@ -3,7 +3,6 @@ package ComputationalGraph;
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.Function.*;
 import ComputationalGraph.Node.*;
-import ComputationalGraph.Optimizer.Optimizer;
 import Math.Tensor;
 
 import java.io.*;
@@ -277,19 +276,14 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Performs backpropagation on the computational graph.
-     * @param optimizer Optimizer to be used for updating the values.
      */
-    protected void backpropagation(Optimizer optimizer) {
+    protected void backpropagation() {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
         ArrayList<Double> backward = new ArrayList<>();
-        int n = 1;
-        for (int i = 0; i < outputNode.getValue().getShape().length - 1; i++) {
-            n *= outputNode.getValue().getShape()[i];
-        }
         for (int i = 0; i < outputNode.getValue().getData().size(); i++) {
-            backward.add(1.0 / n);
+            backward.add(1.0 / this.parameters.getBatchSize());
         }
         outputNode.setBackward(new Tensor(backward, outputNode.getValue().getShape()));
         while (!sortedNodes.isEmpty()) {
@@ -308,7 +302,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        optimizer.updateValues(this.leafNodes);
+        this.parameters.getOptimizer().updateValues(this.leafNodes);
         clear();
     }
 

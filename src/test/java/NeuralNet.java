@@ -84,7 +84,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
                 input.setValue(createInputTensor(instance));
                 classLabelNode.setValue(setClassLabelNode(numberOfClasses, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
                 this.forwardCalculation();
-                this.backpropagation(parameters.getOptimizer());
+                this.backpropagation();
             }
             parameters.getOptimizer().setLearningRate();
         }
