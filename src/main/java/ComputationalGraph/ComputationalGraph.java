@@ -60,6 +60,10 @@ public abstract class ComputationalGraph implements Serializable {
         }
     }
 
+    protected ComputationalNode addEdge(ComputationalNode first, Object second) {
+        return addEdge(first, second, false);
+    }
+
     protected ComputationalNode addFunctionEdge(ArrayList<ComputationalNode> inputNodes, Function second, boolean isBiased) {
         return second.addEdge(inputNodes, isBiased);
     }
