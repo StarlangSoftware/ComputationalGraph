@@ -13,15 +13,11 @@ public abstract class ComputationalGraph implements Serializable {
     protected ComputationalNode outputNode;
     protected ArrayList<ComputationalNode> inputNodes;
     private ArrayList<ComputationalNode> leafNodes;
-    private final NeuralNetworkParameter parameters;
+    protected final NeuralNetworkParameter parameters;
 
     public ComputationalGraph(NeuralNetworkParameter parameters) {
         this.inputNodes = new ArrayList<>();
         this.parameters = parameters;
-    }
-
-    protected NeuralNetworkParameter getParameters() {
-        return parameters;
     }
 
     /**

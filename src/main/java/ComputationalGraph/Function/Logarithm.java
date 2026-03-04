@@ -9,6 +9,11 @@ import Math.Tensor;
 
 public class Logarithm implements Function, Serializable {
 
+    /**
+     * Applies the natural logarithm function to each element of the input tensor.
+     * @param value The tensor whose elements are to be transformed using the natural logarithm.
+     * @return A new tensor containing the logarithmic values of the input tensor, with the same shape as the input.
+     */
     @Override
     public Tensor calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
@@ -19,6 +24,12 @@ public class Logarithm implements Function, Serializable {
         return new Tensor(values, value.getShape());
     }
 
+    /**
+     * Computes the derivative of the Logarithm function.
+     * @param value output of the Logarithm(x).
+     * @param backward Backward tensor.
+     * @return Gradient value of the corresponding node.
+     */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
         ArrayList<Double> values = new ArrayList<>();

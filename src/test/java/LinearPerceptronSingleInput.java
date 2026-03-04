@@ -5,7 +5,6 @@ import ComputationalGraph.Node.ComputationalNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import ComputationalGraph.Function.Softmax;
 import ComputationalGraph.Node.MultiplicationNode;
@@ -28,7 +27,6 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
 
     @Override
     public void train(ArrayList<Tensor> trainSet) {
-        NeuralNetworkParameter parameters = this.getParameters();
         ComputationalNode input = new MultiplicationNode(false, true, false);
         inputNodes.add(input);
         Tensor weightsTensor = new Tensor(Arrays.asList(1.0, 1.0, 1.0, 1.0), new int[]{2, 2});

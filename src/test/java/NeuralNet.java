@@ -38,7 +38,6 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
 
     @Override
     public void train(ArrayList<Tensor> trainSet) {
-        NeuralNetworkParameter parameters = this.getParameters();
         // Input Node
         ComputationalNode input = new MultiplicationNode(false, true);
         ComputationalNode classLabelNode = new ComputationalNode();
