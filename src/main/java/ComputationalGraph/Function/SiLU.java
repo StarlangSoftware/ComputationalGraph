@@ -7,7 +7,7 @@ import ComputationalGraph.Node.MultiplicationNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Swish extends Sigmoid implements Serializable {
+public class SiLU extends Sigmoid implements Serializable {
 
     public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
         ComputationalNode sigmoid = new FunctionNode(false, this);

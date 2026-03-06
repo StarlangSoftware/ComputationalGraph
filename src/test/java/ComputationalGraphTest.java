@@ -1,6 +1,7 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
 import ComputationalGraph.Function.CrossEntropyLoss;
+import ComputationalGraph.Node.*;
 import ComputationalGraph.Optimizer.*;
 import org.junit.Test;
 import Math.*;
@@ -56,5 +57,51 @@ public class ComputationalGraphTest {
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
         assertEquals(1.0, performance.getAccuracy(), 0.01);
+    }
+
+    @Test
+    public void testFeatures() {
+        ComputationalGraph graph = new ComputationalGraph(new NeuralNetworkParameter(1, 1, new StochasticGradientDescent(0.1, 0.99))) {
+            @Override
+            public void train(ArrayList<Tensor> trainSet) {
+                ComputationalNode input = new MultiplicationNode(false, false);
+                inputNodes.add(input);
+                input.setValue(new Tensor(Arrays.asList(1.0, 2.0, 3.0, 4.0), new int[]{2, 1, 2}));
+                ArrayList<ComputationalNode> nodes = new ArrayList<>();
+                for (int i = 0; i < 4; i++) {
+                    MultiplicationNode w = new MultiplicationNode(new Tensor(Arrays.asList(6.0, 5.0, 4.0, 3.0, 2.0, 1.0), new int[]{1, 2, 3}));
+                    nodes.add(this.addEdge(input, w));
+                }
+                ComputationalNode c = this.concatEdges(nodes, 1);
+                MultiplicationNode w = new MultiplicationNode(new Tensor(Arrays.asList(6.0, 5.0, 1.0), new int[]{1, 3, 1}));
+                this.outputNode = this.addEdge(c, w);
+                this.forwardCalculation();
+                this.backpropagation();
+                input.setValue(new Tensor(Arrays.asList(4.0, 3.0, 2.0, 1.0), new int[]{2, 1, 2}));
+                this.forwardCalculation();
+                ArrayList<Double> output = (ArrayList<Double>) this.outputNode.getValue().getData();
+                ArrayList<Double> expected = new ArrayList<>();
+                expected.add(2202.44);
+                expected.add(2202.44);
+                expected.add(2202.44);
+                expected.add(2202.44);
+                expected.add(973.6400000000001);
+                expected.add(973.6400000000001);
+                expected.add(973.6400000000001);
+                expected.add(973.6400000000001);
+                assertEquals(expected, output);
+            }
+
+            @Override
+            public ClassificationPerformance test(ArrayList<Tensor> testSet) {
+                return null;
+            }
+
+            @Override
+            protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
+                return null;
+            }
+        };
+        graph.train(null);
     }
 }
