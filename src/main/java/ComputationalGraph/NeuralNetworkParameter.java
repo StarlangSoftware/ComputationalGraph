@@ -36,7 +36,7 @@ public class NeuralNetworkParameter extends Parameter {
         this.initialization = new RandomInitialization();
         this.dropout = 0.0;
         this.lossFunction = new CrossEntropyLoss();
-        this.batchDimension = 0;
+        this.batchDimension = -1;
     }
 
     public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Loss lossFunction, double dropout) {
@@ -46,7 +46,7 @@ public class NeuralNetworkParameter extends Parameter {
         this.initialization = new RandomInitialization();
         this.dropout = dropout;
         this.lossFunction = lossFunction;
-        this.batchDimension = 0;
+        this.batchDimension = -1;
     }
 
     public Optimizer getOptimizer() {

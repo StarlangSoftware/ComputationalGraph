@@ -21,6 +21,9 @@ public class DivideByDimensionSize implements Function, Serializable {
      */
     @Override
     public Tensor calculate(Tensor value) {
+        if (dimension == -1) {
+            return value;
+        }
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
         int size = value.getShape()[dimension];
@@ -40,6 +43,9 @@ public class DivideByDimensionSize implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
+        if (dimension == -1) {
+            return backward;
+        }
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
         int size = value.getShape()[dimension];
