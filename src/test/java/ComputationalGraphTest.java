@@ -1,6 +1,7 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
-import ComputationalGraph.Function.CrossEntropyLoss;
+import ComputationalGraph.Loss.CrossEntropyLoss;
+import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Node.*;
 import ComputationalGraph.Optimizer.*;
 import org.junit.Test;
@@ -52,7 +53,7 @@ public class ComputationalGraphTest {
                 trainList.add(new Tensor(values, new int[]{values.size()}));
             }
         }
-        NeuralNet graph = new NeuralNet(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), new CrossEntropyLoss(), 0));
+        NeuralNet graph = new NeuralNet(new NeuralNetworkParameter(1, 4, new AdamW(0.002, 0.99, 0.9, 0.999, 1e-10, 0.5), new CrossEntropyLoss(), 0));
         graph.train(trainList);
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
@@ -75,6 +76,8 @@ public class ComputationalGraphTest {
                 ComputationalNode c = this.concatEdges(nodes, 1);
                 MultiplicationNode w = new MultiplicationNode(new Tensor(Arrays.asList(6.0, 5.0, 1.0), new int[]{1, 3, 1}));
                 this.outputNode = this.addEdge(c, w);
+                Loss dummyLoss = (inputNode, classNode, d) -> inputNode;
+                this.addLoss(outputNode, null, dummyLoss);
                 this.forwardCalculation();
                 this.backpropagation();
                 input.setValue(new Tensor(Arrays.asList(4.0, 3.0, 2.0, 1.0), new int[]{2, 1, 2}));

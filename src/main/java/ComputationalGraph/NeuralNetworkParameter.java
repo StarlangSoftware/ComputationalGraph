@@ -1,8 +1,8 @@
 package ComputationalGraph;
 
 import Classification.Parameter.Parameter;
-import ComputationalGraph.Function.CrossEntropyLoss;
-import ComputationalGraph.Function.Function;
+import ComputationalGraph.Loss.CrossEntropyLoss;
+import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Initialization.Initialization;
 import ComputationalGraph.Initialization.RandomInitialization;
 import ComputationalGraph.Optimizer.Optimizer;
@@ -16,17 +16,17 @@ public class NeuralNetworkParameter extends Parameter {
     private final int epoch;
     private final Initialization initialization;
     private final double dropout;
-    private final Function lossFunction;
-    private final int batchSize;
+    private final Loss lossFunction;
+    private final int batchDimension;
 
-    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Initialization initialization, Function lossFunction, double dropout, int batchSize) {
+    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Initialization initialization, Loss lossFunction, double dropout, int batchDimension) {
         super(seed);
         this.optimizer = optimizer;
         this.epoch = epoch;
         this.initialization = initialization;
         this.dropout = dropout;
         this.lossFunction = lossFunction;
-        this.batchSize = batchSize;
+        this.batchDimension = batchDimension;
     }
 
     public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer) {
@@ -36,17 +36,17 @@ public class NeuralNetworkParameter extends Parameter {
         this.initialization = new RandomInitialization();
         this.dropout = 0.0;
         this.lossFunction = new CrossEntropyLoss();
-        this.batchSize = 1;
+        this.batchDimension = 0;
     }
 
-    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Function lossFunction, double dropout) {
+    public NeuralNetworkParameter(int seed, int epoch, Optimizer optimizer, Loss lossFunction, double dropout) {
         super(seed);
         this.optimizer = optimizer;
         this.epoch = epoch;
         this.initialization = new RandomInitialization();
         this.dropout = dropout;
         this.lossFunction = lossFunction;
-        this.batchSize = 1;
+        this.batchDimension = 0;
     }
 
     public Optimizer getOptimizer() {
@@ -65,11 +65,11 @@ public class NeuralNetworkParameter extends Parameter {
         return dropout;
     }
 
-    public Function getLossFunction() {
+    public Loss getLossFunction() {
         return lossFunction;
     }
 
-    public int getBatchSize() {
-        return batchSize;
+    public int getBatchDimension() {
+        return batchDimension;
     }
 }

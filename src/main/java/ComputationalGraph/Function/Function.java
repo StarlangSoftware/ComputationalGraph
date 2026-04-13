@@ -1,12 +1,17 @@
 package ComputationalGraph.Function;
 
 import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.*;
 
-import java.util.ArrayList;
-
 public interface Function {
+
     Tensor calculate(Tensor matrix);
     Tensor derivative(Tensor value, Tensor backward);
-    ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased);
+
+    default ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        inputNode.add(newNode);
+        return newNode;
+    }
 }

@@ -1,5 +1,6 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.ComputationalGraph;
+import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Node.ComputationalNode;
 
 import java.io.Serializable;
@@ -35,6 +36,8 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
         this.outputNode = this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});
         input.setValue(createInputTensor(dataTensor));
+        Loss dummyLoss = (inputNode, classNode, d) -> inputNode;
+        this.addLoss(outputNode, null, dummyLoss);
         this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));

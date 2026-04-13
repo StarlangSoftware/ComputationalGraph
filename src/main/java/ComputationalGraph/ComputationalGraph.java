@@ -2,6 +2,7 @@ package ComputationalGraph;
 
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.Function.*;
+import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Node.*;
 import Math.Tensor;
 
@@ -10,6 +11,7 @@ import java.util.*;
 
 public abstract class ComputationalGraph implements Serializable {
 
+    private ComputationalNode lossNode;
     protected ComputationalNode outputNode;
     protected ArrayList<ComputationalNode> inputNodes;
     private ArrayList<ComputationalNode> leafNodes;
@@ -40,11 +42,25 @@ public abstract class ComputationalGraph implements Serializable {
      */
     protected abstract ArrayList<Double> getOutputValue(ComputationalNode outputNode);
 
+    /**
+     * Randomly shuffles the elements within the provided list of tensors.
+     * @param tensors The list of tensors to be shuffled.
+     * @param random  The instance of Random used to generate random indices for shuffling.
+     */
+    protected void shuffle(ArrayList<Tensor> tensors, Random random) {
+        int size = tensors.size();
+        for (int j = 0; j < size; j++) {
+            int i1 = random.nextInt(size);
+            int i2 = random.nextInt(size);
+            Tensor tmp = tensors.get(i1);
+            tensors.set(i1, tensors.get(i2));
+            tensors.set(i2, tmp);
+        }
+    }
+
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         if (second instanceof Function) {
-            ArrayList<ComputationalNode> nodes = new ArrayList<>();
-            nodes.add(first);
-            return ((Function) second).addEdge(nodes, isBiased);
+            return ((Function) second).addEdge(first, isBiased);
         } else {
             ComputationalNode newNode;
             if (second instanceof MultiplicationNode) {
@@ -64,8 +80,8 @@ public abstract class ComputationalGraph implements Serializable {
         return addEdge(first, second, false);
     }
 
-    protected ComputationalNode addFunctionEdge(ArrayList<ComputationalNode> inputNodes, Function second, boolean isBiased) {
-        return second.addEdge(inputNodes, isBiased);
+    protected void addLoss(ComputationalNode inputNode, ComputationalNode classLabelNode, Loss second) {
+        lossNode = second.addEdge(inputNode, classLabelNode, parameters.getBatchDimension());
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
@@ -267,7 +283,7 @@ public abstract class ComputationalGraph implements Serializable {
                     if (leftValue != null && backward != null) {
                         return leftValue.transpose(transposeAxes(leftValue.getShape().length)).multiply(backward);
                     }
-                    throw new NullPointerException("Backward and/or left child values are null");
+                    throw new NullPointerException("Backward and/or left child values are null.");
                 }
                 return backward;
             }
@@ -283,7 +299,7 @@ public abstract class ComputationalGraph implements Serializable {
         ComputationalNode outputNode = sortedNodes.remove(0);
         ArrayList<Double> backward = new ArrayList<>();
         for (int i = 0; i < outputNode.getValue().getData().size(); i++) {
-            backward.add(1.0 / this.parameters.getBatchSize());
+            backward.add(1.0);
         }
         outputNode.setBackward(new Tensor(backward, outputNode.getValue().getShape()));
         while (!sortedNodes.isEmpty()) {
@@ -354,30 +370,18 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * Recursively finds and returns the output node of the computational graph.
-     * The output node is defined as a node that does not have any children.
-     * @param node The starting computational node from which the search begins.
-     * @return The output node, which is a node with no children.
-     */
-    private ComputationalNode findOutputNode(ComputationalNode node) {
-        if (node.childrenSize() == 0) {
-            return node;
-        } else {
-            return findOutputNode(node.getChild(0));
-        }
-    }
-
-    /**
      * Identifies and returns all the leaf nodes in the computational graph.
      * A leaf node is defined as a node that does not have any parent nodes.
      * @return A list of leaf nodes in the computational graph, represented as an {@link ArrayList} of ComputationalNode objects.
      */
     private ArrayList<ComputationalNode> findLeafNodes() {
         ArrayList<ComputationalNode> leafNodes = new ArrayList<>();
-        ComputationalNode outputNode = findOutputNode(inputNodes.get(0));
         ArrayList<ComputationalNode> queue = new ArrayList<>();
         HashSet<ComputationalNode> visited = new HashSet<>();
-        queue.add(outputNode);
+        if (lossNode == null) {
+            throw new IllegalArgumentException("Loss function must be initialized first.");
+        }
+        queue.add(lossNode);
         while (!queue.isEmpty()) {
             ComputationalNode currentNode = queue.remove(0);
             if (currentNode.parentsSize() == 0) {
@@ -396,10 +400,10 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Perform a forward pass through the computational graph.
-     * @param enableDropout Whether to enable dropout or not.
+     * @param isTraining indicates whether the forward pass is for training or inference.
      * @return A list of predicted class indices.
      */
-    private ArrayList<Double> forwardCalculation(boolean enableDropout) {
+    private ArrayList<Double> forwardCalculation(boolean isTraining) {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return new ArrayList<>();
         HashMap<ComputationalNode, ComputationalNode[]> concatenatedNodeMap = new HashMap<>();
@@ -410,10 +414,10 @@ public abstract class ComputationalGraph implements Serializable {
                 getBiased(currentNode);
             }
             if (currentNode.getValue() == null) {
-                throw new IllegalArgumentException("Current node's value is null");
+                throw new IllegalArgumentException("leaf node's value must be initialized first.");
             }
             if (currentNode.childrenSize() > 0) {
-                if (currentNode.equals(outputNode) && !enableDropout) {
+                if (currentNode.equals(outputNode) && !isTraining) {
                     break;
                 }
                 for (int t = 0; t < currentNode.childrenSize(); t++) {
@@ -423,7 +427,7 @@ public abstract class ComputationalGraph implements Serializable {
                             Function function = ((FunctionNode) child).getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (function instanceof Dropout) {
-                                if (enableDropout) {
+                                if (isTraining) {
                                     child.setValue(function.calculate(currentValue));
                                 } else {
                                     child.setValue(new Tensor(currentValue.getData(), currentValue.getShape()));
