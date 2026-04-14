@@ -43,17 +43,9 @@ public class ComputationalNode implements Serializable {
         return children.get(index);
     }
 
-    public void addChild(ComputationalNode child) {
-        children.add(child);
-    }
-
-    public void addParent(ComputationalNode parent) {
-        parents.add(parent);
-    }
-
     public void add(ComputationalNode child) {
         children.add(child);
-        child.addParent(this);
+        child.parents.add(this);
     }
 
     public ComputationalNode getParent(int index) {

@@ -1,8 +1,8 @@
 package ComputationalGraph.Function;
 
-import ComputationalGraph.Node.ComputationalNode;
+import Math.Tensor;
 
-@FunctionalInterface
 public interface Function {
-    ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased);
+    Tensor calculate(Tensor matrix);
+    Tensor derivative(Tensor value, Tensor backward);
 }

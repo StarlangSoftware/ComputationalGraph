@@ -3,11 +3,9 @@ package ComputationalGraph.Function;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import ComputationalGraph.Node.ComputationalNode;
-import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
-public class Logarithm implements FunctionCalculator, Serializable {
+public class Logarithm implements Function, Serializable {
 
     /**
      * Applies the natural logarithm function to each element of the input tensor.
@@ -42,11 +40,5 @@ public class Logarithm implements FunctionCalculator, Serializable {
             values.add(derivative * backwardValue);
         }
         return new Tensor(values, value.getShape());
-    }
-
-    public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
-        ComputationalNode newNode = new FunctionNode(isBiased, this);
-        inputNode.add(newNode);
-        return newNode;
     }
 }

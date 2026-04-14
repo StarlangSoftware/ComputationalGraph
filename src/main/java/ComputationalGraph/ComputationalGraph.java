@@ -60,7 +60,11 @@ public abstract class ComputationalGraph implements Serializable {
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
         if (second instanceof Function) {
-            return ((Function) second).addEdge(first, isBiased);
+            ComputationalNode newNode = new FunctionNode(isBiased, (Function) second);
+            first.add(newNode);
+            return newNode;
+        } else if (second instanceof CompositeFunction) {
+            return ((CompositeFunction) second).addEdge(first, isBiased);
         } else {
             ComputationalNode newNode;
             if (second instanceof MultiplicationNode) {
@@ -68,10 +72,8 @@ public abstract class ComputationalGraph implements Serializable {
             } else {
                 throw new IllegalArgumentException("Illegal Type of Object: second");
             }
-            first.addChild(newNode);
-            newNode.addParent(first);
-            ((ComputationalNode) second).addChild(newNode);
-            newNode.addParent((ComputationalNode) second);
+            first.add(newNode);
+            ((ComputationalNode) second).add(newNode);
             return newNode;
         }
     }
@@ -86,19 +88,15 @@ public abstract class ComputationalGraph implements Serializable {
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
         ComputationalNode newNode = new MultiplicationNode(false, isBiased, isHadamard, first);
-        first.addChild(newNode);
-        newNode.addParent(first);
-        second.addChild(newNode);
-        newNode.addParent(second);
+        first.add(newNode);
+        second.add(newNode);
         return newNode;
     }
 
     protected ComputationalNode addAdditionEdge(ComputationalNode first, ComputationalNode second, boolean isBiased) {
         ComputationalNode newNode = new ComputationalNode(false, isBiased);
-        first.addChild(newNode);
-        newNode.addParent(first);
-        second.addChild(newNode);
-        newNode.addParent(second);
+        first.add(newNode);
+        second.add(newNode);
         return newNode;
     }
 
@@ -111,8 +109,7 @@ public abstract class ComputationalGraph implements Serializable {
     protected ComputationalNode concatEdges(ArrayList<ComputationalNode> nodes, int dimension) {
         ConcatenatedNode newNode = new ConcatenatedNode(dimension);
         for (ComputationalNode node : nodes) {
-            node.addChild(newNode);
-            newNode.addParent(node);
+            node.add(newNode);
             newNode.addNode(node);
         }
         return newNode;
@@ -232,7 +229,7 @@ public abstract class ComputationalGraph implements Serializable {
             backward = child.getBackward();
         }
         if (child instanceof FunctionNode) {
-            FunctionCalculator function = (FunctionCalculator) ((FunctionNode) child).getFunction();
+            Function function = ((FunctionNode) child).getFunction();
             Tensor childValue;
             if (child.isBiased()) {
                 childValue = getBiasedPartial(child.getValue());
@@ -424,7 +421,7 @@ public abstract class ComputationalGraph implements Serializable {
                     ComputationalNode child = currentNode.getChild(t);
                     if (child.getValue() == null) {
                         if (child instanceof FunctionNode) {
-                            FunctionCalculator function = (FunctionCalculator) ((FunctionNode) child).getFunction();
+                            Function function = ((FunctionNode) child).getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (function instanceof Dropout) {
                                 if (isTraining) {

@@ -3,11 +3,9 @@ package ComputationalGraph.Function;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import ComputationalGraph.Node.ComputationalNode;
-import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
-public class DELU implements FunctionCalculator, Serializable {
+public class DELU implements Function, Serializable {
 
     private final double a;
     private final double b;
@@ -65,11 +63,5 @@ public class DELU implements FunctionCalculator, Serializable {
             }
         }
         return new Tensor(values, value.getShape());
-    }
-
-    public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
-        ComputationalNode newNode = new FunctionNode(isBiased, this);
-        inputNode.add(newNode);
-        return newNode;
     }
 }

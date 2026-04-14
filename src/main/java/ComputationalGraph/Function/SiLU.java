@@ -6,7 +6,7 @@ import ComputationalGraph.Node.MultiplicationNode;
 
 import java.io.Serializable;
 
-public class SiLU implements Function, Serializable {
+public class SiLU implements CompositeFunction, Serializable {
 
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
         ComputationalNode sigmoid = new FunctionNode(false, new Sigmoid());
