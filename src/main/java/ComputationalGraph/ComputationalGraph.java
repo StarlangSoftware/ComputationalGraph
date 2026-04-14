@@ -232,7 +232,7 @@ public abstract class ComputationalGraph implements Serializable {
             backward = child.getBackward();
         }
         if (child instanceof FunctionNode) {
-            Function function = ((FunctionNode) child).getFunction();
+            FunctionCalculator function = (FunctionCalculator) ((FunctionNode) child).getFunction();
             Tensor childValue;
             if (child.isBiased()) {
                 childValue = getBiasedPartial(child.getValue());
@@ -424,7 +424,7 @@ public abstract class ComputationalGraph implements Serializable {
                     ComputationalNode child = currentNode.getChild(t);
                     if (child.getValue() == null) {
                         if (child instanceof FunctionNode) {
-                            Function function = ((FunctionNode) child).getFunction();
+                            FunctionCalculator function = (FunctionCalculator) ((FunctionNode) child).getFunction();
                             Tensor currentValue = currentNode.getValue();
                             if (function instanceof Dropout) {
                                 if (isTraining) {

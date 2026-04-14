@@ -1,12 +1,14 @@
 package ComputationalGraph.Function;
 
+import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Dropout implements Function, Serializable {
+public class Dropout implements FunctionCalculator, Serializable {
 
     private final double p;
     private final Random random;
@@ -51,5 +53,11 @@ public class Dropout implements Function, Serializable {
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
         return backward.hadamardProduct(new Tensor(mask, value.getShape()));
+    }
+
+    public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
+        ComputationalNode newNode = new FunctionNode(isBiased, this);
+        inputNode.add(newNode);
+        return newNode;
     }
 }

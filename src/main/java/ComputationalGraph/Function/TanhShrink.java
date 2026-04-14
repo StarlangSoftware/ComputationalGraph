@@ -5,10 +5,10 @@ import ComputationalGraph.Node.FunctionNode;
 
 import java.io.Serializable;
 
-public class TanhShrink extends Tanh implements Serializable {
+public class TanhShrink implements Function, Serializable {
 
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
-        ComputationalNode tanh = new FunctionNode(false, this);
+        ComputationalNode tanh = new FunctionNode(false, new Tanh());
         inputNode.add(tanh);
         ComputationalNode negativeTanh = new FunctionNode(false, new Negation());
         tanh.add(negativeTanh);

@@ -6,14 +6,14 @@ import ComputationalGraph.Node.MultiplicationNode;
 
 import java.io.Serializable;
 
-public class SiLU extends Sigmoid implements Serializable {
+public class SiLU implements Function, Serializable {
 
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
-        ComputationalNode sigmoid = new FunctionNode(false, this);
+        ComputationalNode sigmoid = new FunctionNode(false, new Sigmoid());
         inputNode.add(sigmoid);
-        ComputationalNode swish = new MultiplicationNode(false, isBiased, true);
-        sigmoid.add(swish);
-        inputNode.add(swish);
-        return swish;
+        ComputationalNode silu = new MultiplicationNode(false, isBiased, true);
+        sigmoid.add(silu);
+        inputNode.add(silu);
+        return silu;
     }
 }
