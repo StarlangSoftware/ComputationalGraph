@@ -2,7 +2,6 @@ package ComputationalGraph;
 
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.Function.*;
-import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Node.*;
 import Math.Tensor;
 
@@ -37,10 +36,9 @@ public abstract class ComputationalGraph implements Serializable {
 
     /**
      * Retrieves the output value(s) of the given output node in the computational graph.
-     * @param outputNode The output node for which the output value(s) are to be retrieved.
      * @return A list of doubles representing the output value(s) of the output node.
      */
-    protected abstract ArrayList<Double> getOutputValue(ComputationalNode outputNode);
+    protected abstract ArrayList<Double> getOutputValue();
 
     /**
      * Randomly shuffles the elements within the provided list of tensors.
@@ -82,8 +80,11 @@ public abstract class ComputationalGraph implements Serializable {
         return addEdge(first, second, false);
     }
 
-    protected void addLoss(ComputationalNode inputNode, ComputationalNode classLabelNode, Loss second) {
-        lossNode = second.addEdge(inputNode, classLabelNode, parameters.getBatchDimension());
+    protected void addLoss(ComputationalNode classLabelNode) {
+        if (outputNode == null) {
+            throw new IllegalArgumentException("Output node must be initialized first.");
+        }
+        lossNode = parameters.getLossFunction().addEdge(outputNode, classLabelNode, parameters.getBatchDimension());
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
@@ -472,7 +473,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        return getOutputValue(outputNode);
+        return getOutputValue();
     }
 
     /**

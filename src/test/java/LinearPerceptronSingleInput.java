@@ -36,8 +36,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
         this.outputNode = this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});
         input.setValue(createInputTensor(dataTensor));
-        Loss dummyLoss = (inputNode, classNode, d) -> inputNode;
-        this.addLoss(outputNode, null, dummyLoss);
+        this.addLoss(null);
         this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));
@@ -50,7 +49,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
     }
 
     @Override
-    protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
+    protected ArrayList<Double> getOutputValue() {
         return null;
     }
 }

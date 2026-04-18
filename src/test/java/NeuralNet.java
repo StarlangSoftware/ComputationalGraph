@@ -64,7 +64,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3);
         this.outputNode = this.addEdge(a3, new Softmax());
-        this.addLoss(outputNode, classLabelNode, parameters.getLossFunction());
+        this.addLoss(classLabelNode);
         // Training
         for (int i = 0; i < parameters.getEpoch(); i++) {
             this.shuffle(trainSet, new Random(parameters.getSeed()));
@@ -93,7 +93,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
+    protected ArrayList<Double> getOutputValue() {
         ArrayList<Double> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
