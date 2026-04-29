@@ -64,21 +64,10 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3);
         this.outputNode = this.addEdge(a3, new Softmax());
-        ArrayList<ComputationalNode> nodes = new ArrayList<>();
-        nodes.add(this.outputNode);
-        nodes.add(classLabelNode);
-        this.addFunctionEdge(nodes, parameters.getLossFunction(), false);
+        this.addLoss(classLabelNode);
         // Training
         for (int i = 0; i < parameters.getEpoch(); i++) {
-            // Shuffle
-            Random random = new Random(parameters.getSeed());
-            for (int j = 0; j < trainSet.size(); j++) {
-                int i1 = random.nextInt(trainSet.size());
-                int i2 = random.nextInt(trainSet.size());
-                Tensor tmp = trainSet.get(i1);
-                trainSet.set(i1, trainSet.get(i2));
-                trainSet.set(i2, tmp);
-            }
+            this.shuffle(trainSet, new Random(parameters.getSeed()));
             for (Tensor instance : trainSet) {
                 input.setValue(createInputTensor(instance));
                 classLabelNode.setValue(setClassLabelNode(numberOfClasses, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
@@ -104,7 +93,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
+    protected ArrayList<Double> getOutputValue() {
         ArrayList<Double> classLabelIndices = new ArrayList<>();
         Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {

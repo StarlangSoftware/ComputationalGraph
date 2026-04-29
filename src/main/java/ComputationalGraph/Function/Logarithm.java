@@ -1,10 +1,8 @@
 package ComputationalGraph.Function;
 
-import ComputationalGraph.Node.ComputationalNode;
-import ComputationalGraph.Node.FunctionNode;
-
 import java.io.Serializable;
 import java.util.ArrayList;
+
 import Math.Tensor;
 
 public class Logarithm implements Function, Serializable {
@@ -42,12 +40,5 @@ public class Logarithm implements Function, Serializable {
             values.add(derivative * backwardValue);
         }
         return new Tensor(values, value.getShape());
-    }
-
-    @Override
-    public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
-        ComputationalNode newNode = new FunctionNode(isBiased, this);
-        inputNodes.get(0).add(newNode);
-        return newNode;
     }
 }

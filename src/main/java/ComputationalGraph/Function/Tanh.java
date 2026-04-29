@@ -1,7 +1,5 @@
 package ComputationalGraph.Function;
 
-import ComputationalGraph.Node.ComputationalNode;
-import ComputationalGraph.Node.FunctionNode;
 import Math.Tensor;
 
 import java.io.Serializable;
@@ -41,12 +39,5 @@ public class Tanh implements Function, Serializable {
             values.add((1 - oldValue * oldValue) * backwardValue);
         }
         return new Tensor(values, value.getShape());
-    }
-
-    @Override
-    public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
-        ComputationalNode newNode = new FunctionNode(isBiased, this);
-        inputNodes.get(0).add(newNode);
-        return newNode;
     }
 }

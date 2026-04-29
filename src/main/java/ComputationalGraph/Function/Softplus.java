@@ -5,38 +5,29 @@ import java.util.ArrayList;
 
 import Math.Tensor;
 
-public class Power implements Function, Serializable {
-
-    private final int n;
-
-    public Power(int n) {
-        this.n = n;
-    }
-
-    public Power() {
-        this.n = 2;
-    }
+public class Softplus implements Function, Serializable {
 
     /**
-     * Computes the Power of the given tensor.
-     * @param value The tensor whose values are to be computed.
-     * @return pow(x).
+     * Computes the Softplus activation function for the given tensor.
+     * The Softplus function is defined as ln(1 + exp(x)) and is applied element-wise.
+     * @param value The input tensor whose values are to be computed.
+     * @return A new tensor with the Softplus activation applied to each element.
      */
     @Override
     public Tensor calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
         for (double val : tensorValues) {
-            values.add(Math.pow(val, n));
+            values.add(Math.log(1.0 + Math.exp(val)));
         }
         return new Tensor(values, value.getShape());
     }
 
     /**
-     * Computes the derivative of the Power function.
-     * @param value output of the Power(x).
-     * @param backward Backward tensor.
-     * @return Gradient value of the corresponding node.
+     * Computes the derivative of the Softplus activation function.
+     * @param value The output tensor of the Softplus activation.
+     * @param backward The backward tensor used for gradient propagation.
+     * @return A tensor representing the gradient values for the corresponding input.
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
@@ -45,9 +36,8 @@ public class Power implements Function, Serializable {
         ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
         for (int i = 0; i < tensorValues.size(); i++) {
             double val = tensorValues.get(i);
-            double derivative = n * Math.pow(Math.pow(val, 1.0 / n), n - 1);
             double backwardValue = backwardValues.get(i);
-            values.add(derivative * backwardValue);
+            values.add((1 - Math.exp(-val)) * backwardValue);
         }
         return new Tensor(values, value.getShape());
     }

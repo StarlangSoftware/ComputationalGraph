@@ -5,16 +5,15 @@ import ComputationalGraph.Node.FunctionNode;
 import ComputationalGraph.Node.MultiplicationNode;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
-public class SiLU extends Sigmoid implements Serializable {
+public class SiLU implements FunctionCombiner, Serializable {
 
-    public ComputationalNode addEdge(ArrayList<ComputationalNode> inputNodes, boolean isBiased) {
-        ComputationalNode sigmoid = new FunctionNode(false, this);
-        inputNodes.get(0).add(sigmoid);
-        ComputationalNode swish = new MultiplicationNode(false, isBiased, true);
-        sigmoid.add(swish);
-        inputNodes.get(0).add(swish);
-        return swish;
+    public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
+        ComputationalNode sigmoid = new FunctionNode(false, new Sigmoid());
+        inputNode.add(sigmoid);
+        ComputationalNode silu = new MultiplicationNode(false, isBiased, true);
+        sigmoid.add(silu);
+        inputNode.add(silu);
+        return silu;
     }
 }

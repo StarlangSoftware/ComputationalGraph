@@ -1,6 +1,7 @@
 import Classification.Performance.ClassificationPerformance;
 import ComputationalGraph.*;
-import ComputationalGraph.Function.CrossEntropyLoss;
+import ComputationalGraph.Loss.CrossEntropyLoss;
+import ComputationalGraph.Loss.Loss;
 import ComputationalGraph.Node.*;
 import ComputationalGraph.Optimizer.*;
 import org.junit.Test;
@@ -15,8 +16,9 @@ import static org.junit.Assert.*;
 public class ComputationalGraphTest {
 
     @Test
-    public void testLinearPerceptronSingleInput(){
-        LinearPerceptronSingleInput graph = new LinearPerceptronSingleInput(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99)));
+    public void testLinearPerceptronSingleInput() {
+        Loss dummyLoss = (inputNode, classNode, d) -> inputNode;
+        LinearPerceptronSingleInput graph = new LinearPerceptronSingleInput(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), dummyLoss, 0));
         graph.train(new ArrayList<>());
     }
 
@@ -52,7 +54,7 @@ public class ComputationalGraphTest {
                 trainList.add(new Tensor(values, new int[]{values.size()}));
             }
         }
-        NeuralNet graph = new NeuralNet(new NeuralNetworkParameter(1, 100, new StochasticGradientDescent(0.1, 0.99), new CrossEntropyLoss(), 0));
+        NeuralNet graph = new NeuralNet(new NeuralNetworkParameter(1, 4, new AdamW(0.002, 0.99, 0.9, 0.999, 1e-10, 0.5), new CrossEntropyLoss(), 0));
         graph.train(trainList);
         ClassificationPerformance performance = graph.test(testList);
         System.out.println("Accuracy: " + performance.getAccuracy());
@@ -61,7 +63,8 @@ public class ComputationalGraphTest {
 
     @Test
     public void testFeatures() {
-        ComputationalGraph graph = new ComputationalGraph(new NeuralNetworkParameter(1, 1, new StochasticGradientDescent(0.1, 0.99))) {
+        Loss dummyLoss = (inputNode, classNode, d) -> inputNode;
+        ComputationalGraph graph = new ComputationalGraph(new NeuralNetworkParameter(1, 1, new StochasticGradientDescent(0.1, 0.99), dummyLoss, 0)) {
             @Override
             public void train(ArrayList<Tensor> trainSet) {
                 ComputationalNode input = new MultiplicationNode(false, false);
@@ -75,6 +78,7 @@ public class ComputationalGraphTest {
                 ComputationalNode c = this.concatEdges(nodes, 1);
                 MultiplicationNode w = new MultiplicationNode(new Tensor(Arrays.asList(6.0, 5.0, 1.0), new int[]{1, 3, 1}));
                 this.outputNode = this.addEdge(c, w);
+                this.addLoss(null);
                 this.forwardCalculation();
                 this.backpropagation();
                 input.setValue(new Tensor(Arrays.asList(4.0, 3.0, 2.0, 1.0), new int[]{2, 1, 2}));
@@ -98,7 +102,7 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            protected ArrayList<Double> getOutputValue(ComputationalNode outputNode) {
+            protected ArrayList<Double> getOutputValue() {
                 return null;
             }
         };
