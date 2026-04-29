@@ -10,7 +10,6 @@ import java.util.*;
 
 public abstract class ComputationalGraph implements Serializable {
 
-    private ComputationalNode lossNode;
     protected ComputationalNode outputNode;
     protected ArrayList<ComputationalNode> inputNodes;
     private ArrayList<ComputationalNode> leafNodes;
@@ -61,8 +60,8 @@ public abstract class ComputationalGraph implements Serializable {
             ComputationalNode newNode = new FunctionNode(isBiased, (Function) second);
             first.add(newNode);
             return newNode;
-        } else if (second instanceof CompositeFunction) {
-            return ((CompositeFunction) second).addEdge(first, isBiased);
+        } else if (second instanceof FunctionCombiner) {
+            return ((FunctionCombiner) second).addEdge(first, isBiased);
         } else {
             ComputationalNode newNode;
             if (second instanceof MultiplicationNode) {
@@ -84,7 +83,24 @@ public abstract class ComputationalGraph implements Serializable {
         if (outputNode == null) {
             throw new IllegalArgumentException("Output node must be initialized first.");
         }
-        lossNode = parameters.getLossFunction().addEdge(outputNode, classLabelNode, parameters.getBatchDimension());
+        ComputationalNode lossNode = parameters.getLossFunction().addLoss(outputNode, classLabelNode, parameters.getBatchDimension());
+        this.leafNodes = new ArrayList<>();
+        ArrayList<ComputationalNode> queue = new ArrayList<>();
+        HashSet<ComputationalNode> visited = new HashSet<>();
+        queue.add(lossNode);
+        while (!queue.isEmpty()) {
+            ComputationalNode currentNode = queue.remove(0);
+            if (currentNode.parentsSize() == 0) {
+                leafNodes.add(currentNode);
+            }
+            for (int i = 0; i < currentNode.parentsSize(); i++) {
+                ComputationalNode parent = currentNode.getParent(i);
+                if (!visited.contains(parent)) {
+                    visited.add(parent);
+                    queue.add(parent);
+                }
+            }
+        }
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
@@ -361,39 +377,7 @@ public abstract class ComputationalGraph implements Serializable {
      * @return A list of predicted class indices.
      */
     protected ArrayList<Double> forwardCalculation() {
-        if (leafNodes == null) {
-            leafNodes = findLeafNodes();
-        }
         return forwardCalculation(true);
-    }
-
-    /**
-     * Identifies and returns all the leaf nodes in the computational graph.
-     * A leaf node is defined as a node that does not have any parent nodes.
-     * @return A list of leaf nodes in the computational graph, represented as an {@link ArrayList} of ComputationalNode objects.
-     */
-    private ArrayList<ComputationalNode> findLeafNodes() {
-        ArrayList<ComputationalNode> leafNodes = new ArrayList<>();
-        ArrayList<ComputationalNode> queue = new ArrayList<>();
-        HashSet<ComputationalNode> visited = new HashSet<>();
-        if (lossNode == null) {
-            throw new IllegalArgumentException("Loss function must be initialized first.");
-        }
-        queue.add(lossNode);
-        while (!queue.isEmpty()) {
-            ComputationalNode currentNode = queue.remove(0);
-            if (currentNode.parentsSize() == 0) {
-                leafNodes.add(currentNode);
-            }
-            for (int i = 0; i < currentNode.parentsSize(); i++) {
-                ComputationalNode parent = currentNode.getParent(i);
-                if (!visited.contains(parent)) {
-                    visited.add(parent);
-                    queue.add(parent);
-                }
-            }
-        }
-        return leafNodes;
     }
 
     /**

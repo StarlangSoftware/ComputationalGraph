@@ -11,7 +11,7 @@ import java.io.Serializable;
 public class MeanSquaredErrorLoss implements Loss, Serializable {
 
     @Override
-    public ComputationalNode addEdge(ComputationalNode inputNode, ComputationalNode classLabelNode, int batchDimension) {
+    public ComputationalNode addLoss(ComputationalNode inputNode, ComputationalNode classLabelNode, int batchDimension) {
         ComputationalNode negatedY = new FunctionNode(false, new Negation());
         inputNode.add(negatedY);
         ComputationalNode yMinusNegatedY = new ComputationalNode();

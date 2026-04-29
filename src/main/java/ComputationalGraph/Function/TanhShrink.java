@@ -5,7 +5,7 @@ import ComputationalGraph.Node.FunctionNode;
 
 import java.io.Serializable;
 
-public class TanhShrink implements CompositeFunction, Serializable {
+public class TanhShrink implements FunctionCombiner, Serializable {
 
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
         ComputationalNode tanh = new FunctionNode(false, new Tanh());

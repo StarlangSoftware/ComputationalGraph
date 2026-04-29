@@ -11,7 +11,7 @@ import java.io.Serializable;
 public class CrossEntropyLoss implements Loss, Serializable {
 
     @Override
-    public ComputationalNode addEdge(ComputationalNode inputNode, ComputationalNode classLabelNode, int batchDimension) {
+    public ComputationalNode addLoss(ComputationalNode inputNode, ComputationalNode classLabelNode, int batchDimension) {
         ComputationalNode logy = new FunctionNode(false, new Logarithm());
         inputNode.add(logy);
         ComputationalNode ylogy = new MultiplicationNode(false, false, true);

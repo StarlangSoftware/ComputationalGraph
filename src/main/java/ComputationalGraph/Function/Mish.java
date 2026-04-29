@@ -6,7 +6,7 @@ import ComputationalGraph.Node.MultiplicationNode;
 
 import java.io.Serializable;
 
-public class Mish implements CompositeFunction, Serializable {
+public class Mish implements FunctionCombiner, Serializable {
 
     @Override
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
