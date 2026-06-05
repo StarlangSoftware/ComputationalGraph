@@ -10,7 +10,7 @@ import ComputationalGraph.Optimizer.Optimizer;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class NeuralNetworkParameter extends Parameter {
+public class NeuralNetworkParameter extends Parameter implements java.io.Serializable {
 
     private final Optimizer optimizer;
     private final int epoch;

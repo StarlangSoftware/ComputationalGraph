@@ -68,7 +68,7 @@ public class ComputationalGraphTest {
             @Override
             public void train(ArrayList<Tensor> trainSet) {
                 ComputationalNode input = new MultiplicationNode(false, false);
-                inputNodes.add(input);
+                this.addInputNode(input);
                 input.setValue(new Tensor(Arrays.asList(1.0, 2.0, 3.0, 4.0), new int[]{2, 1, 2}));
                 ArrayList<ComputationalNode> nodes = new ArrayList<>();
                 for (int i = 0; i < 4; i++) {
@@ -77,13 +77,11 @@ public class ComputationalGraphTest {
                 }
                 ComputationalNode c = this.concatEdges(nodes, 1);
                 MultiplicationNode w = new MultiplicationNode(new Tensor(Arrays.asList(6.0, 5.0, 1.0), new int[]{1, 3, 1}));
-                this.outputNode = this.addEdge(c, w);
-                this.addLoss(null);
+                this.addLoss(this.addEdge(c, w));
                 this.forwardCalculation();
                 this.backpropagation();
                 input.setValue(new Tensor(Arrays.asList(4.0, 3.0, 2.0, 1.0), new int[]{2, 1, 2}));
-                this.forwardCalculation();
-                ArrayList<Double> output = (ArrayList<Double>) this.outputNode.getValue().getData();
+                ArrayList<Double> output = this.forwardCalculation();
                 ArrayList<Double> expected = new ArrayList<>();
                 expected.add(2202.44);
                 expected.add(2202.44);
@@ -102,8 +100,8 @@ public class ComputationalGraphTest {
             }
 
             @Override
-            protected ArrayList<Double> getOutputValue() {
-                return null;
+            protected ArrayList<Double> getOutputValue(Tensor outputValue) {
+                return (ArrayList<Double>) outputValue.getData();
             }
         };
         graph.train(null);

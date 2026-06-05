@@ -14,13 +14,13 @@ public class Softplus implements Function, Serializable {
      * @return A new tensor with the Softplus activation applied to each element.
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
         for (double val : tensorValues) {
             values.add(Math.log(1.0 + Math.exp(val)));
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

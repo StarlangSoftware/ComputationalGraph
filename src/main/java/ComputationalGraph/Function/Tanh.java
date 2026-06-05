@@ -13,13 +13,13 @@ public class Tanh implements Function, Serializable {
      * @return Tanh(x).
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
             values.add(Math.tanh(oldValue));
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

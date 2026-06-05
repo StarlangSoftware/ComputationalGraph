@@ -13,7 +13,7 @@ public class Softmax implements Function, Serializable {
      * @return Softmax(x).
      */
     @Override
-    public Tensor calculate(Tensor tensor) {
+    public FunctionResults calculate(Tensor tensor) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
         int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
@@ -29,7 +29,7 @@ public class Softmax implements Function, Serializable {
         for (int i = 0; i < oldValues.size(); i++) {
             values.add(Math.exp(oldValues.get(i)) / sumList.get(i / lastDimensionSize));
         }
-        return new Tensor(values, tensor.getShape());
+        return new FunctionResults(new Tensor(values, tensor.getShape()));
     }
 
     /**

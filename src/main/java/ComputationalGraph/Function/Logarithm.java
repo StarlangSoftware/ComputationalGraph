@@ -10,21 +10,24 @@ public class Logarithm implements Function, Serializable {
     /**
      * Applies the natural logarithm function to each element of the input tensor.
      * @param value The tensor whose elements are to be transformed using the natural logarithm.
-     * @return A new tensor containing the logarithmic values of the input tensor, with the same shape as the input.
+     * @return log(x) and x.
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
+            if (oldValue <= 0) {
+                throw new IllegalArgumentException("Logarithm function input must be strictly positive. Found: " + oldValue);
+            }
             values.add(Math.log(oldValue));
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()), new Tensor(oldValues, value.getShape()));
     }
 
     /**
      * Computes the derivative of the Logarithm function.
-     * @param value output of the Logarithm(x).
+     * @param value input of the Logarithm(x).
      * @param backward Backward tensor.
      * @return Gradient value of the corresponding node.
      */
@@ -35,7 +38,7 @@ public class Logarithm implements Function, Serializable {
         ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
         for (int i = 0; i < tensorValues.size(); i++) {
             double val = tensorValues.get(i);
-            double derivative = 1.0 / Math.exp(val);
+            double derivative = 1.0 / val;
             double backwardValue = backwardValues.get(i);
             values.add(derivative * backwardValue);
         }

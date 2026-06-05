@@ -13,13 +13,13 @@ public class Negation implements Function, Serializable {
      * @return The negated tensor.
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
             values.add(-oldValue);
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

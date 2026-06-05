@@ -18,9 +18,7 @@ public class DELU implements Function, Serializable {
     }
 
     public DELU() {
-        this.a = 1.0;
-        this.b = 2.0;
-        this.xc = 1.25643;
+        this(1.0, 2.0, 1.25643);
     }
 
     /**
@@ -29,7 +27,7 @@ public class DELU implements Function, Serializable {
      * @return DELU(x).
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
@@ -39,7 +37,7 @@ public class DELU implements Function, Serializable {
                 values.add((Math.exp(this.a * oldValue) - 1) / this.b);
             }
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

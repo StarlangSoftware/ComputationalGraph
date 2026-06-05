@@ -47,6 +47,12 @@ public class MultiplicationNode extends ComputationalNode implements Serializabl
         this.priorityNode = null;
     }
 
+    public MultiplicationNode() {
+        super(false, true);
+        this.isHadamard = false;
+        this.priorityNode = null;
+    }
+
     @Override
     public String toString() {
         StringBuilder details = new StringBuilder();

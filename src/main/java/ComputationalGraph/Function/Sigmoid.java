@@ -13,14 +13,14 @@ public class Sigmoid implements Function, Serializable {
      * @return Sigmoid(x).
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
         for (double val : tensorValues) {
             double sigmoid = 1.0 / (1.0 + Math.exp(-val));
             values.add(sigmoid);
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

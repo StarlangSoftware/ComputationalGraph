@@ -20,9 +20,9 @@ public class DivideByDimensionSize implements Function, Serializable {
      * @return A new tensor where each element is divided by the size of the specified dimension.
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         if (dimension == -1) {
-            return value;
+            return new FunctionResults(value);
         }
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
@@ -30,7 +30,7 @@ public class DivideByDimensionSize implements Function, Serializable {
         for (double val : tensorValues) {
             values.add((1.0 / size) * (val));
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

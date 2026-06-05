@@ -10,8 +10,8 @@ import java.util.*;
 
 public abstract class ComputationalGraph implements Serializable {
 
-    protected ComputationalNode outputNode;
-    protected ArrayList<ComputationalNode> inputNodes;
+    private ComputationalNode outputNode;
+    private final ArrayList<ComputationalNode> inputNodes;
     private ArrayList<ComputationalNode> leafNodes;
     protected final NeuralNetworkParameter parameters;
 
@@ -34,10 +34,11 @@ public abstract class ComputationalGraph implements Serializable {
     public abstract ClassificationPerformance test(ArrayList<Tensor> testSet);
 
     /**
-     * Retrieves the output value(s) of the given output node in the computational graph.
-     * @return A list of doubles representing the output value(s) of the output node.
+     * Computes the output values for a given tensor in the computational graph.
+     * @param outputValue The tensor from which output values are to be computed.
+     * @return A list of double values representing the computed output of the tensor.
      */
-    protected abstract ArrayList<Double> getOutputValue();
+    protected abstract ArrayList<Double> getOutputValue(Tensor outputValue);
 
     /**
      * Randomly shuffles the elements within the provided list of tensors.
@@ -53,6 +54,31 @@ public abstract class ComputationalGraph implements Serializable {
             tensors.set(i1, tensors.get(i2));
             tensors.set(i2, tmp);
         }
+    }
+
+    /**
+     * Adds an input node to the computational graph.
+     * @param node The input computational node to be added.
+     */
+    protected void addInputNode(ComputationalNode node) {
+        inputNodes.add(node);
+    }
+
+    /**
+     * Retrieves the input node from the computational graph at the specified index.
+     * @param index The index of the input node to retrieve.
+     * @return The input computational node located at the specified index.
+     */
+    protected ComputationalNode getInputNode(int index) {
+        return inputNodes.get(index);
+    }
+
+    /**
+     * Retrieves the size of the input nodes in the computational graph.
+     * @return The number of input nodes present in the computational graph.
+     */
+    protected int inputNodeCount() {
+        return inputNodes.size();
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, Object second, boolean isBiased) {
@@ -79,10 +105,16 @@ public abstract class ComputationalGraph implements Serializable {
         return addEdge(first, second, false);
     }
 
-    protected void addLoss(ComputationalNode classLabelNode) {
-        if (outputNode == null) {
-            throw new IllegalArgumentException("Output node must be initialized first.");
-        }
+    /**
+     * Adds a loss to the computational graph based on the provided output node.
+     * Initializes a class label node for use in the loss computation and determines all leaf nodes
+     * in the subgraph stemming from the loss node.
+     * @param outputNode The output node of the computational graph, for which loss needs to be added.
+     * @return The class label node associated with the added loss.
+     */
+    protected ComputationalNode addLoss(ComputationalNode outputNode) {
+        ComputationalNode classLabelNode = new ComputationalNode();
+        this.outputNode = outputNode;
         ComputationalNode lossNode = parameters.getLossFunction().addLoss(outputNode, classLabelNode, parameters.getBatchDimension());
         this.leafNodes = new ArrayList<>();
         ArrayList<ComputationalNode> queue = new ArrayList<>();
@@ -101,6 +133,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
+        return classLabelNode;
     }
 
     protected ComputationalNode addEdge(ComputationalNode first, ComputationalNode second, boolean isBiased, boolean isHadamard) {
@@ -213,23 +246,6 @@ public abstract class ComputationalGraph implements Serializable {
     }
 
     /**
-     * Removes the bias term from the tensor.
-     * @param tensor for which the bias term needs to be removed.
-     * @return Tensor without bias term.
-     */
-    private Tensor getBiasedPartial(Tensor tensor) {
-        int[] endIndexes = new int[tensor.getShape().length];
-        for (int i = 0; i < endIndexes.length; i++) {
-            if (i == endIndexes.length - 1) {
-                endIndexes[i] = tensor.getShape()[i] - 1;
-            } else {
-                endIndexes[i] = tensor.getShape()[i];
-            }
-        }
-        return tensor.partial(new int[tensor.getShape().length], endIndexes);
-    }
-
-    /**
      * Calculates the derivative of the child node with respect to the parent node.
      * @param node Parent node.
      * @param child Child node.
@@ -239,22 +255,15 @@ public abstract class ComputationalGraph implements Serializable {
         if (child.parentsSize() == 0) {
             return null;
         }
-        Tensor backward;
-        if (child.isBiased()) {
-            backward = getBiasedPartial(child.getBackward());
-        } else {
-            backward = child.getBackward();
-        }
         if (child instanceof FunctionNode) {
-            Function function = ((FunctionNode) child).getFunction();
-            Tensor childValue;
-            if (child.isBiased()) {
-                childValue = getBiasedPartial(child.getValue());
-            } else {
-                childValue = child.getValue();
-            }
-            return function.derivative(childValue, backward);
+            return ((FunctionNode) child).derivative();
         } else {
+            Tensor backward;
+            if (child.isBiased()) {
+                backward = ComputationalNode.getBiasedPartial(child.getBackward());
+            } else {
+                backward = child.getBackward();
+            }
             if (child instanceof ConcatenatedNode) {
                 int index = ((ConcatenatedNode) child).getIndex(node);
                 int blockSize = backward.getShape()[((ConcatenatedNode) child).getDimension()] / child.parentsSize();
@@ -406,16 +415,15 @@ public abstract class ComputationalGraph implements Serializable {
                     ComputationalNode child = currentNode.getChild(t);
                     if (child.getValue() == null) {
                         if (child instanceof FunctionNode) {
-                            Function function = ((FunctionNode) child).getFunction();
                             Tensor currentValue = currentNode.getValue();
-                            if (function instanceof Dropout) {
+                            if (((FunctionNode) child).isDropout()) {
                                 if (isTraining) {
-                                    child.setValue(function.calculate(currentValue));
+                                    ((FunctionNode) child).calculate(currentValue);
                                 } else {
                                     child.setValue(new Tensor(currentValue.getData(), currentValue.getShape()));
                                 }
                             } else {
-                                child.setValue(function.calculate(currentValue));
+                                ((FunctionNode) child).calculate(currentValue);
                             }
                         } else {
                             if (child instanceof ConcatenatedNode) {
@@ -457,7 +465,7 @@ public abstract class ComputationalGraph implements Serializable {
                 }
             }
         }
-        return getOutputValue();
+        return getOutputValue(this.outputNode.getValue());
     }
 
     /**

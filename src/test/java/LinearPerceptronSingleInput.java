@@ -29,14 +29,13 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
     @Override
     public void train(ArrayList<Tensor> trainSet) {
         ComputationalNode input = new MultiplicationNode(false, true, false);
-        inputNodes.add(input);
+        this.addInputNode(input);
         Tensor weightsTensor = new Tensor(Arrays.asList(1.0, 1.0, 1.0, 1.0), new int[]{2, 2});
         ComputationalNode w = new MultiplicationNode(weightsTensor);
         ComputationalNode a = this.addEdge(input, w, false);
-        this.outputNode = this.addEdge(a, new Softmax(), false);
         Tensor dataTensor = new Tensor(Arrays.asList(1.0, 1.0), new int[]{2});
         input.setValue(createInputTensor(dataTensor));
-        this.addLoss(null);
+        this.addLoss(this.addEdge(a, new Softmax(), false));
         this.forwardCalculation();
         ArrayList<Integer> classList = new ArrayList<>();
         classList.add((int) dataTensor.getValue(new int[]{dataTensor.getShape()[0] - 1}));
@@ -49,7 +48,7 @@ public class LinearPerceptronSingleInput extends ComputationalGraph implements S
     }
 
     @Override
-    protected ArrayList<Double> getOutputValue() {
+    protected ArrayList<Double> getOutputValue(Tensor outputValue) {
         return null;
     }
 }

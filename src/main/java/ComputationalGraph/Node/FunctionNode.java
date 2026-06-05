@@ -1,12 +1,17 @@
 package ComputationalGraph.Node;
 
+import ComputationalGraph.Function.Dropout;
 import ComputationalGraph.Function.Function;
 
 import java.io.Serializable;
 
+import ComputationalGraph.Function.*;
+import Math.Tensor;
+
 public class FunctionNode extends ComputationalNode implements Serializable {
 
     private final Function function;
+    private Tensor context;
 
     public FunctionNode(boolean isBiased, Function function) {
         super(false, isBiased);
@@ -38,7 +43,34 @@ public class FunctionNode extends ComputationalNode implements Serializable {
         return "FunctionNode(" + details + ")";
     }
 
-    public Function getFunction() {
-        return function;
+    public boolean isDropout() {
+        return function instanceof Dropout;
+    }
+
+    public void calculate(Tensor input) {
+        FunctionResults results = function.calculate(input);
+        this.setValue(results.output());
+        if (results.context() != null) {
+            this.context = results.context();
+        }
+    }
+
+    public Tensor derivative() {
+        Tensor backward;
+        if (isBiased) {
+            backward = getBiasedPartial(this.backward);
+        } else {
+            backward = this.backward;
+        }
+        if (context != null) {
+            return function.derivative(context, backward);
+        }
+        Tensor value;
+        if (isBiased) {
+            value = getBiasedPartial(this.value);
+        } else {
+            value = this.value;
+        }
+        return function.derivative(value, backward);
     }
 }

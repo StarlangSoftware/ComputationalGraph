@@ -14,27 +14,27 @@ public class Power implements Function, Serializable {
     }
 
     public Power() {
-        this.n = 2;
+        this(2);
     }
 
     /**
      * Computes the Power of the given tensor.
      * @param value The tensor whose values are to be computed.
-     * @return pow(x).
+     * @return pow(x) and input tensor.
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
         for (double val : tensorValues) {
             values.add(Math.pow(val, n));
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()), new Tensor(tensorValues, value.getShape()));
     }
 
     /**
      * Computes the derivative of the Power function.
-     * @param value output of the Power(x).
+     * @param value input of the Power(x).
      * @param backward Backward tensor.
      * @return Gradient value of the corresponding node.
      */
@@ -45,7 +45,7 @@ public class Power implements Function, Serializable {
         ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
         for (int i = 0; i < tensorValues.size(); i++) {
             double val = tensorValues.get(i);
-            double derivative = n * Math.pow(Math.pow(val, 1.0 / n), n - 1);
+            double derivative = n * Math.pow(val, n - 1);
             double backwardValue = backwardValues.get(i);
             values.add(derivative * backwardValue);
         }

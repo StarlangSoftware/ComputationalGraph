@@ -39,10 +39,8 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     @Override
     public void train(ArrayList<Tensor> trainSet) {
         // Input Node
-        ComputationalNode input = new MultiplicationNode(false, true);
-        ComputationalNode classLabelNode = new ComputationalNode();
-        inputNodes.add(input);
-        inputNodes.add(classLabelNode);
+        ComputationalNode input = new MultiplicationNode();
+        this.addInputNode(input);
         // First layer weights
         int numberOfInputUnitsWithBiased = 5;
         int numberOfHiddenUnitsInLayer1 = 4;
@@ -63,8 +61,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         Tensor t3 = new Tensor(parameters.initializeWeights(numberOfHiddenUnitsInLayer2 + 1, numberOfClasses, new Random(parameters.getSeed())), new int[]{21, 3});
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3);
-        this.outputNode = this.addEdge(a3, new Softmax());
-        this.addLoss(classLabelNode);
+        ComputationalNode classLabelNode = this.addLoss(this.addEdge(a3, new Softmax()));
         // Training
         for (int i = 0; i < parameters.getEpoch(); i++) {
             this.shuffle(trainSet, new Random(parameters.getSeed()));
@@ -82,7 +79,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     public ClassificationPerformance test(ArrayList<Tensor> testSet) {
         int count = 0, total = 0;
         for (Tensor instance : testSet) {
-            inputNodes.get(0).setValue(createInputTensor(instance));
+            this.getInputNode(0).setValue(createInputTensor(instance));
             int classLabel = this.predict().get(0).intValue();
             if (classLabel == instance.getValue(new int[]{instance.getShape()[0] - 1})) {
                 count++;
@@ -93,9 +90,8 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
     }
 
     @Override
-    protected ArrayList<Double> getOutputValue() {
+    protected ArrayList<Double> getOutputValue(Tensor outputValue) {
         ArrayList<Double> classLabelIndices = new ArrayList<>();
-        Tensor outputValue = outputNode.getValue();
         if (outputValue != null) {
             int cols = outputValue.getShape()[1];
             double maxVal = Double.NEGATIVE_INFINITY;

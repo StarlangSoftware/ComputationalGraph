@@ -14,7 +14,7 @@ public class ELU implements Function, Serializable {
     }
 
     public ELU() {
-        this.a = 1.0;
+        this(1.0);
     }
 
     /**
@@ -23,7 +23,7 @@ public class ELU implements Function, Serializable {
      * @return ELU(x).
      */
     @Override
-    public Tensor calculate(Tensor value) {
+    public FunctionResults calculate(Tensor value) {
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
         for (Double oldValue : oldValues) {
@@ -33,7 +33,7 @@ public class ELU implements Function, Serializable {
                 values.add(oldValue);
             }
         }
-        return new Tensor(values, value.getShape());
+        return new FunctionResults(new Tensor(values, value.getShape()));
     }
 
     /**

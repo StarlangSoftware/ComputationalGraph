@@ -109,4 +109,16 @@ public class ComputationalNode implements Serializable {
     public void setBackward(Tensor backward) {
         this.backward = backward;
     }
+
+    public static Tensor getBiasedPartial(Tensor tensor) {
+        int[] endIndexes = new int[tensor.getShape().length];
+        for (int i = 0; i < endIndexes.length; i++) {
+            if (i == endIndexes.length - 1) {
+                endIndexes[i] = tensor.getShape()[i] - 1;
+            } else {
+                endIndexes[i] = tensor.getShape()[i];
+            }
+        }
+        return tensor.partial(new int[tensor.getShape().length], endIndexes);
+    }
 }
