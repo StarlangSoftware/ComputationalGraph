@@ -22,7 +22,7 @@ public class StochasticGradientDescent extends Optimizer implements Serializable
         ArrayList<Double> values = new ArrayList<>();
         ArrayList<Double> backward = (ArrayList<Double>) node.getBackward().getData();
         for (Double aDouble : backward) {
-            values.add(aDouble * this.learningRate);
+            values.add(aDouble * getLearningRate());
         }
         node.setBackward(new Tensor(values, node.getBackward().getShape()));
     }

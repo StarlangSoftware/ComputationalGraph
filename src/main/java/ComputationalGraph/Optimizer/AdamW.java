@@ -25,7 +25,7 @@ public class AdamW extends Adam implements Serializable {
         ArrayList<Double> gradients = calculate(node);
         ArrayList<Double> values = (ArrayList<Double>) node.getValue().getData();
         for (int i = 0; i < gradients.size(); i++) {
-            gradients.set(i, gradients.get(i) + (learningRate * weightDecay * values.get(i)));
+            gradients.set(i, gradients.get(i) + (getLearningRate() * weightDecay * values.get(i)));
         }
         node.setBackward(new Tensor(gradients, node.getBackward().getShape()));
     }

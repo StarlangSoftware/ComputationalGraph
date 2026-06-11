@@ -9,7 +9,7 @@ import Math.Tensor;
 
 public abstract class Optimizer implements Serializable {
 
-    protected double learningRate;
+    private double learningRate;
     private final Scheduler scheduler;
 
     public Optimizer(Scheduler scheduler) {
@@ -105,5 +105,9 @@ public abstract class Optimizer implements Serializable {
                 updateRecursive(visited, node);
             }
         }
+    }
+
+    protected double getLearningRate() {
+        return this.learningRate;
     }
 }

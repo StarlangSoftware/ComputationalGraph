@@ -69,7 +69,7 @@ public class Adam extends SGDMomentum implements Serializable {
         newValuesVelocity.replaceAll(value -> value / (1 - this.currentBeta2));
         ArrayList<Double> newValues = new ArrayList<>(newValuesMomentum.size());
         for (int i = 0; i < newValuesMomentum.size(); i++) {
-            newValues.add((newValuesMomentum.get(i) / (Math.sqrt(newValuesVelocity.get(i)) + epsilon)) * learningRate);
+            newValues.add((newValuesMomentum.get(i) / (Math.sqrt(newValuesVelocity.get(i)) + epsilon)) * getLearningRate());
         }
         return newValues;
     }

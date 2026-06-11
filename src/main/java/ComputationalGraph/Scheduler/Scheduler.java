@@ -17,7 +17,7 @@ public abstract class Scheduler implements Serializable {
         return call();
     }
 
-    public int getEpoch() {
+    protected int getEpoch() {
         return epoch;
     }
 
