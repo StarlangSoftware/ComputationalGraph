@@ -1,6 +1,7 @@
 package ComputationalGraph.Optimizer;
 
 import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 import java.io.Serializable;
@@ -10,8 +11,8 @@ public class AdamW extends Adam implements Serializable {
 
     private final double weightDecay;
 
-    public AdamW(double learningRate, double etaDecrease, double beta1, double beta2, double epsilon, double weightDecay) {
-        super(learningRate, etaDecrease, beta1, beta2, epsilon);
+    public AdamW(Scheduler scheduler, double beta1, double beta2, double epsilon, double weightDecay) {
+        super(scheduler, beta1, beta2, epsilon);
         this.weightDecay = weightDecay;
     }
 

@@ -4,12 +4,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 public class StochasticGradientDescent extends Optimizer implements Serializable {
 
-    public StochasticGradientDescent(double learningRate, double etaDecrease) {
-        super(learningRate, etaDecrease);
+    public StochasticGradientDescent(Scheduler scheduler) {
+        super(scheduler);
     }
 
     /**

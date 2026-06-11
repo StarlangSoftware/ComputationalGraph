@@ -4,23 +4,24 @@ import java.io.Serializable;
 import java.util.*;
 
 import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 public abstract class Optimizer implements Serializable {
 
     protected double learningRate;
-    private final double etaDecrease;
+    private final Scheduler scheduler;
 
-    public Optimizer(double learningRate, double etaDecrease) {
-        this.learningRate = learningRate;
-        this.etaDecrease = etaDecrease;
+    public Optimizer(Scheduler scheduler) {
+        this.learningRate = scheduler.getInitialLearningRate();
+        this.scheduler = scheduler;
     }
 
     /**
      * Updates the learning rate of the optimizer.
      */
     public void setLearningRate() {
-        this.learningRate *= this.etaDecrease;
+        this.learningRate = this.scheduler.updateLearningRate();
     }
 
     /**

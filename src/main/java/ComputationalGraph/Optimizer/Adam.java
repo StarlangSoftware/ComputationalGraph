@@ -4,6 +4,8 @@ import ComputationalGraph.Node.ComputationalNode;
 
 import java.io.Serializable;
 import java.util.*;
+
+import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 public class Adam extends SGDMomentum implements Serializable {
@@ -14,8 +16,8 @@ public class Adam extends SGDMomentum implements Serializable {
     private double currentBeta1;
     private double currentBeta2;
 
-    public Adam(double learningRate, double etaDecrease, double beta1, double beta2, double epsilon) {
-        super(learningRate, etaDecrease, beta1);
+    public Adam(Scheduler scheduler, double beta1, double beta2, double epsilon) {
+        super(scheduler, beta1);
         this.momentumMap = new HashMap<>();
         this.beta2 = beta2;
         this.epsilon = epsilon;

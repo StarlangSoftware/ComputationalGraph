@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import ComputationalGraph.Node.ComputationalNode;
+import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 public class SGDMomentum extends Optimizer implements Serializable {
@@ -11,8 +12,8 @@ public class SGDMomentum extends Optimizer implements Serializable {
     protected final HashMap<ComputationalNode, double[]> velocityMap;
     protected final double momentum;
 
-    public SGDMomentum(double learningRate, double etaDecrease, double momentum) {
-        super(learningRate, etaDecrease);
+    public SGDMomentum(Scheduler scheduler, double momentum) {
+        super(scheduler);
         this.velocityMap = new HashMap<>();
         this.momentum = momentum;
     }
