@@ -11,6 +11,11 @@ public class ExponentialLR extends Scheduler implements Serializable {
         this.etaDecrease = etaDecrease;
     }
 
+    public ExponentialLR(double etaDecrease) {
+        super();
+        this.etaDecrease = etaDecrease;
+    }
+
     /**
      * Computes the updated learning rate based on an exponential decay schedule.
      * The learning rate decreases exponentially over epochs, where the rate

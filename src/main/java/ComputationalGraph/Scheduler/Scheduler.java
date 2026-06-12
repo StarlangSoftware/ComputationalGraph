@@ -4,11 +4,15 @@ import java.io.Serializable;
 
 public abstract class Scheduler implements Serializable {
 
-    protected final double initialLearningRate;
+    protected double initialLearningRate;
     private int epoch;
 
     public Scheduler(double initialLearningRate) {
         this.initialLearningRate = initialLearningRate;
+        this.epoch = 0;
+    }
+
+    public Scheduler() {
         this.epoch = 0;
     }
 
@@ -23,6 +27,10 @@ public abstract class Scheduler implements Serializable {
 
     public double getInitialLearningRate() {
         return initialLearningRate;
+    }
+
+    protected void setInitialLearningRate(double initialLearningRate) {
+        this.initialLearningRate = initialLearningRate;
     }
 
     protected abstract double call();

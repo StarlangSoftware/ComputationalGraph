@@ -13,6 +13,12 @@ public class CosineAnnealingLR extends Scheduler implements Serializable {
         this.tMax = tMax;
     }
 
+    public CosineAnnealingLR(double etaMin, double tMax) {
+        super();
+        this.etaMin = etaMin;
+        this.tMax = tMax;
+    }
+
     /**
      * Calculates the updated learning rate using the cosine annealing schedule.
      * The learning rate decreases over time according to a cosine function,
