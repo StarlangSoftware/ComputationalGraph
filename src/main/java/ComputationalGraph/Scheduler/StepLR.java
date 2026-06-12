@@ -11,6 +11,12 @@ public class StepLR extends ExponentialLR implements Serializable {
         this.stepSize = stepSize;
     }
 
+    /**
+     * Computes the updated learning rate based on a step decay schedule.
+     * The learning rate is reduced at regular intervals determined by the step size.
+     * The decay factor is applied to every `stepSize` epoch to calculate the new learning rate.
+     * @return The updated learning rate after applying the step decay formula.
+     */
     @Override
     protected double call() {
         int period = getEpoch() / this.stepSize;

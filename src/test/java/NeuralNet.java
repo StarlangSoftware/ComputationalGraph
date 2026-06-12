@@ -14,30 +14,6 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
 
     public NeuralNet(NeuralNetworkParameter parameters) {
         super(parameters);
-    }
-
-    private Tensor createInputTensor(Tensor instance) {
-        ArrayList<Double> data = new ArrayList<>();
-        for (int i = 0; i < instance.getShape()[0] - 1; i++) {
-            data.add(instance.getValue(new int[]{i}));
-        }
-        return new Tensor(data, new int[]{1, instance.getShape()[0] - 1});
-    }
-
-    private Tensor setClassLabelNode(int n, int classLabel) {
-        ArrayList<Double> data = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            if (i == classLabel) {
-                data.add(1.0);
-            } else {
-                data.add(0.0);
-            }
-        }
-        return new Tensor(data, new int[]{1, n});
-    }
-
-    @Override
-    public void train(ArrayList<Tensor> trainSet) {
         // Input Node
         ComputationalNode input = new MultiplicationNode();
         this.addInputNode(input);
@@ -62,12 +38,37 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
         ComputationalNode w3 = new MultiplicationNode(t3);
         ComputationalNode a3 = this.addEdge(a2ELUDropout, w3);
         ComputationalNode classLabelNode = this.addLoss(this.addEdge(a3, new Softmax()));
+        this.addInputNode(classLabelNode);
+    }
+
+    private Tensor createInputTensor(Tensor instance) {
+        ArrayList<Double> data = new ArrayList<>();
+        for (int i = 0; i < instance.getShape()[0] - 1; i++) {
+            data.add(instance.getValue(new int[]{i}));
+        }
+        return new Tensor(data, new int[]{1, instance.getShape()[0] - 1});
+    }
+
+    private Tensor setClassLabelNode(int classLabel) {
+        ArrayList<Double> data = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            if (i == classLabel) {
+                data.add(1.0);
+            } else {
+                data.add(0.0);
+            }
+        }
+        return new Tensor(data, new int[]{1, 3});
+    }
+
+    @Override
+    public void train(ArrayList<Tensor> trainSet) {
         // Training
         for (int i = 0; i < parameters.getEpoch(); i++) {
             this.shuffle(trainSet, new Random(parameters.getSeed()));
             for (Tensor instance : trainSet) {
-                input.setValue(createInputTensor(instance));
-                classLabelNode.setValue(setClassLabelNode(numberOfClasses, (int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
+                this.getInputNode(0).setValue(createInputTensor(instance));
+                this.getInputNode(1).setValue(setClassLabelNode((int) instance.getValue(new int[]{instance.getShape()[0] - 1})));
                 this.forwardCalculation();
                 this.backpropagation();
             }

@@ -8,6 +8,15 @@ import java.io.Serializable;
 
 public class GELU implements FunctionCombiner, Serializable {
 
+    /**
+     * Adds a computational graph structure implementing the GELU (Gaussian Error Linear Unit)
+     * activation function to the provided input node. The structure consists of multiple intermediate
+     * nodes, including power, multiplication, addition, and hyperbolic tangent operations.
+     * The final computational node for the GELU activation function is returned.
+     * @param inputNode The input computational node to which the GELU structure will be added.
+     * @param isBiased Indicates whether the final GELU computation node should be biased.
+     * @return The computational node representing the final step of the GELU activation function.
+     */
     @Override
     public ComputationalNode addEdge(ComputationalNode inputNode, boolean isBiased) {
         FunctionNode power3 = new FunctionNode(false, new Power(3));

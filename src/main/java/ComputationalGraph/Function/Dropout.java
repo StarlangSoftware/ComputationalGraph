@@ -19,7 +19,7 @@ public class Dropout implements Function, Serializable {
     /**
      * Computes the dropout values for the given value tensor.
      * @param value The tensor whose values are to be computed.
-     * @return Output tensors.
+     * @return Dropout(x) and mask.
      */
     @Override
     public FunctionResults calculate(Tensor value) {

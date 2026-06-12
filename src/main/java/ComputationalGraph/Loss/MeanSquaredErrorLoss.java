@@ -10,6 +10,15 @@ import java.io.Serializable;
 
 public class MeanSquaredErrorLoss implements Loss, Serializable {
 
+    /**
+     * Adds a loss computation node to the computational graph based on the mean-squared error loss function.
+     * This loss is calculated as the squared difference between the predicted output and the actual class labels,
+     * averaged over the batch dimension.
+     * @param inputNode The input node representing the predicted output values.
+     * @param classLabelNode The node representing the actual class label values.
+     * @param batchDimension which dimension of the input tensor represents the batch size.
+     * @return A computational node that represents the final loss value normalized by the batch size.
+     */
     @Override
     public ComputationalNode addLoss(ComputationalNode inputNode, ComputationalNode classLabelNode, int batchDimension) {
         ComputationalNode negatedY = new FunctionNode(false, new Negation());
