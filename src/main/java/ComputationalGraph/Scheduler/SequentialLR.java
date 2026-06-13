@@ -12,7 +12,7 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
     public SequentialLR(double initialLearningRate, ArrayList<Scheduler> schedulers, ArrayList<Integer> milestones) {
         super(initialLearningRate);
         if (schedulers.size() != milestones.size() + 1) {
-            throw new IllegalArgumentException("Schedulers and milestones must be of equal length");
+            throw new IllegalArgumentException("Schedulers and milestones must be matching in size.");
         }
         this.schedulers = schedulers;
         this.milestones = milestones;
@@ -34,10 +34,8 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
             lastLearningRate = schedulers.get(curIndex).updateLearningRate();
             return lastLearningRate;
         }
-        if (curIndex < schedulers.size() - 1) {
-            curIndex++;
-            schedulers.get(curIndex).setInitialLearningRate(lastLearningRate);
-        }
+        curIndex++;
+        schedulers.get(curIndex).setInitialLearningRate(lastLearningRate);
         lastLearningRate = schedulers.get(curIndex).updateLearningRate();
         return lastLearningRate;
     }
