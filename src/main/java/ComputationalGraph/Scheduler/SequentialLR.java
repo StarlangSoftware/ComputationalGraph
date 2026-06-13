@@ -1,23 +1,21 @@
 package ComputationalGraph.Scheduler;
 
-import java.util.ArrayList;
-
 public class SequentialLR extends Scheduler implements java.io.Serializable {
 
-    private final ArrayList<Scheduler> schedulers;
-    private final ArrayList<Integer> milestones;
+    private final Scheduler[] schedulers;
+    private final int[] milestones;
     private int curIndex;
     private double lastLearningRate;
 
-    public SequentialLR(double initialLearningRate, ArrayList<Scheduler> schedulers, ArrayList<Integer> milestones) {
+    public SequentialLR(double initialLearningRate, Scheduler[] schedulers, int[] milestones) {
         super(initialLearningRate);
-        if (schedulers.size() != milestones.size() + 1) {
+        if (schedulers.length != milestones.length + 1) {
             throw new IllegalArgumentException("Schedulers and milestones must be matching in size.");
         }
         this.schedulers = schedulers;
         this.milestones = milestones;
         this.curIndex = 0;
-        schedulers.get(curIndex).setInitialLearningRate(initialLearningRate);
+        schedulers[curIndex].setInitialLearningRate(initialLearningRate);
     }
 
     /**
@@ -30,13 +28,13 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
      */
     @Override
     protected double call() {
-        if (curIndex == milestones.size() || getEpoch() <= milestones.get(curIndex)) {
-            lastLearningRate = schedulers.get(curIndex).updateLearningRate();
+        if (curIndex == milestones.length || getEpoch() <= milestones[curIndex]) {
+            lastLearningRate = schedulers[curIndex].updateLearningRate();
             return lastLearningRate;
         }
         curIndex++;
-        schedulers.get(curIndex).setInitialLearningRate(lastLearningRate);
-        lastLearningRate = schedulers.get(curIndex).updateLearningRate();
+        schedulers[curIndex].setInitialLearningRate(lastLearningRate);
+        lastLearningRate = schedulers[curIndex].updateLearningRate();
         return lastLearningRate;
     }
 }

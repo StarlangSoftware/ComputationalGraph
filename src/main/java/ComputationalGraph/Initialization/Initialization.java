@@ -1,8 +1,9 @@
 package ComputationalGraph.Initialization;
 
-import java.util.*;
+import java.util.Random;
+import Math.Tensor;
 
 @FunctionalInterface
 public interface Initialization {
-    ArrayList<Double> initialize(int row, int column, Random random);
+    Tensor initialize(int[] shape, Random random);
 }

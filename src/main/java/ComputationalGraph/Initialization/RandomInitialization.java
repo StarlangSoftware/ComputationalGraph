@@ -2,28 +2,28 @@ package ComputationalGraph.Initialization;
 
 import java.io.Serializable;
 import java.util.*;
+import Math.Tensor;
 
 public class RandomInitialization implements Initialization, Serializable {
 
     /**
-     * Random Uniform Initialization.
-     * <p>
-     * This method initializes the weights with small random values uniformly distributed
-     * between -0.01 and 0.01. This is a basic initialization strategy used to break
-     * symmetry between neurons.
-     * </p>
-     *
-     * @param row    The number of rows in the matrix.
-     * @param column The number of columns in the matrix.
-     * @param random The {@link Random} instance used for generating values.
-     * @return An {@link ArrayList} containing the initialized weight values.
+     * Initializes a tensor with random values sampled uniformly from the range [-0.01, 0.01].
+     * The provided shape determines the dimensions of the tensor.
+     * @param shape An array representing the shape of the tensor to be initialized. Each element
+     *              corresponds to the size of a dimension in the tensor.
+     * @param random An instance of {@code Random} used to generate random values for the tensor entries.
+     * @return A {@code Tensor} containing the randomly initialized values with the specified shape.
      */
     @Override
-    public ArrayList<Double> initialize(int row, int column, Random random) {
+    public Tensor initialize(int[] shape, Random random) {
+        int total = 1;
+        for (int j : shape) {
+            total *= j;
+        }
         ArrayList<Double> data = new ArrayList<>();
-        for (int i = 0; i < row * column; i++) {
+        for (int i = 0; i < total; i++) {
             data.add(-0.01 + (0.02 * random.nextDouble()));
         }
-        return data;
+        return new Tensor(data, shape);
     }
 }

@@ -7,7 +7,7 @@ import ComputationalGraph.Initialization.Initialization;
 import ComputationalGraph.Initialization.RandomInitialization;
 import ComputationalGraph.Optimizer.Optimizer;
 
-import java.util.ArrayList;
+import Math.Tensor;
 import java.util.Random;
 
 public class NeuralNetworkParameter extends Parameter implements java.io.Serializable {
@@ -57,8 +57,8 @@ public class NeuralNetworkParameter extends Parameter implements java.io.Seriali
         return epoch;
     }
 
-    public ArrayList<Double> initializeWeights(int row, int column, Random random) {
-        return initialization.initialize(row, column, random);
+    public Tensor initializeWeights(int[] shape, Random random) {
+        return initialization.initialize(shape, random);
     }
 
     public double getDropout() {
