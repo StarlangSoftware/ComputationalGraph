@@ -3,6 +3,7 @@ package ComputationalGraph.Optimizer;
 import java.io.Serializable;
 import java.util.*;
 
+import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
 import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
@@ -11,10 +12,18 @@ public abstract class Optimizer implements Serializable {
 
     private double learningRate;
     private final Scheduler scheduler;
+    private final GradientClipping gradientClipping;
+
+    public Optimizer(Scheduler scheduler, GradientClipping gradientClipping) {
+        this.learningRate = scheduler.getInitialLearningRate();
+        this.scheduler = scheduler;
+        this.gradientClipping = gradientClipping;
+    }
 
     public Optimizer(Scheduler scheduler) {
         this.learningRate = scheduler.getInitialLearningRate();
         this.scheduler = scheduler;
+        this.gradientClipping = null;
     }
 
     /**
@@ -76,6 +85,9 @@ public abstract class Optimizer implements Serializable {
                     list.add(d);
                 }
                 node.setBackward(new Tensor(list, node.getValue().getShape()));
+            }
+            if (this.gradientClipping != null) {
+                node.setBackward(this.gradientClipping.clip(node.getBackward()));
             }
             this.setGradients(node);
             node.updateValue();

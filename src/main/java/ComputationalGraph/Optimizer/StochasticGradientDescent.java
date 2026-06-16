@@ -3,6 +3,7 @@ package ComputationalGraph.Optimizer;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
 import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
@@ -11,6 +12,10 @@ public class StochasticGradientDescent extends Optimizer implements Serializable
 
     public StochasticGradientDescent(Scheduler scheduler) {
         super(scheduler);
+    }
+
+    public StochasticGradientDescent(Scheduler scheduler, GradientClipping gradientClipping) {
+        super(scheduler, gradientClipping);
     }
 
     /**

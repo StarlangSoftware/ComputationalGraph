@@ -1,5 +1,6 @@
 package ComputationalGraph.Optimizer;
 
+import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
 
 import java.io.Serializable;
@@ -18,6 +19,15 @@ public class Adam extends SGDMomentum implements Serializable {
 
     public Adam(Scheduler scheduler, double beta1, double beta2, double epsilon) {
         super(scheduler, beta1);
+        this.momentumMap = new HashMap<>();
+        this.beta2 = beta2;
+        this.epsilon = epsilon;
+        this.currentBeta1 = 1;
+        this.currentBeta2 = 1;
+    }
+
+    public Adam(Scheduler scheduler, double beta1, double beta2, double epsilon, GradientClipping gradientClipping) {
+        super(scheduler, beta1, gradientClipping);
         this.momentumMap = new HashMap<>();
         this.beta2 = beta2;
         this.epsilon = epsilon;

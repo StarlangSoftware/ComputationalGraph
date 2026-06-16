@@ -3,6 +3,7 @@ package ComputationalGraph.Optimizer;
 import java.io.Serializable;
 import java.util.*;
 
+import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
 import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
@@ -14,6 +15,12 @@ public class SGDMomentum extends Optimizer implements Serializable {
 
     public SGDMomentum(Scheduler scheduler, double momentum) {
         super(scheduler);
+        this.velocityMap = new HashMap<>();
+        this.momentum = momentum;
+    }
+
+    public SGDMomentum(Scheduler scheduler, double momentum, GradientClipping gradientClipping) {
+        super(scheduler, gradientClipping);
         this.velocityMap = new HashMap<>();
         this.momentum = momentum;
     }

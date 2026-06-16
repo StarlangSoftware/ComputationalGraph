@@ -1,5 +1,6 @@
 package ComputationalGraph.Optimizer;
 
+import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
 import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
@@ -13,6 +14,11 @@ public class AdamW extends Adam implements Serializable {
 
     public AdamW(Scheduler scheduler, double beta1, double beta2, double epsilon, double weightDecay) {
         super(scheduler, beta1, beta2, epsilon);
+        this.weightDecay = weightDecay;
+    }
+
+    public AdamW(Scheduler scheduler, double beta1, double beta2, double epsilon, double weightDecay, GradientClipping gradientClipping) {
+        super(scheduler, beta1, beta2, epsilon, gradientClipping);
         this.weightDecay = weightDecay;
     }
 
