@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import Math.Tensor;
 
 public class MultiplyByConstant implements Function, Serializable {
@@ -22,11 +21,12 @@ public class MultiplyByConstant implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor tensor) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) tensor.getData();
-        for (double val : tensorValues) {
+        double[] tensorValues = tensor.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
             double newVal = constant * val;
-            values.add(newVal);
+            values[i] = newVal;
         }
         return new FunctionResults(new Tensor(values, tensor.getShape()));
     }
@@ -43,10 +43,11 @@ public class MultiplyByConstant implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (double backwardValue : backwardValues) {
-            values.add(constant * backwardValue);
+        double[] backwardValues = backward.getData();
+        double[] values = new double[backwardValues.length];
+        for (int i = 0; i < backwardValues.length; i++) {
+            double backwardValue = backwardValues[i];
+            values[i] = constant * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

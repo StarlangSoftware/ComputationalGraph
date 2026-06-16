@@ -1,7 +1,6 @@
 package ComputationalGraph.Clipping;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -19,12 +18,12 @@ public class ClippingByValue extends GradientClipping implements Serializable {
      */
     @Override
     public Tensor clip(Tensor backward) {
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        ArrayList<Double> gradient = new ArrayList<>(backwardValues.size());
+        double[] backwardValues = backward.getData();
+        double[] gradient = new double[backwardValues.length];
         double factor = getFactor();
-        for (Double backwardValue : backwardValues) {
-            double clippedValue = Math.max(-factor, Math.min(factor, backwardValue));
-            gradient.add(clippedValue);
+        for (int i = 0; i < backwardValues.length; i++) {
+            double clippedValue = Math.max(-factor, Math.min(factor, backwardValues[i]));
+            gradient[i] = clippedValue;
         }
         return new Tensor(gradient, backward.getShape());
     }

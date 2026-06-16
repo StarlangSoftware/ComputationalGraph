@@ -3,7 +3,6 @@ package ComputationalGraph.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class Sigmoid implements Function, Serializable {
 
@@ -14,11 +13,12 @@ public class Sigmoid implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        for (double val : tensorValues) {
+        double[] tensorValues = value.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
             double sigmoid = 1.0 / (1.0 + Math.exp(-val));
-            values.add(sigmoid);
+            values[i] = sigmoid;
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -31,14 +31,14 @@ public class Sigmoid implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < tensorValues.size(); i++) {
-            double val = tensorValues.get(i);
+        double[] tensorValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
             double derivative = val * (1 - val);
-            double backwardValue = backwardValues.get(i);
-            values.add(derivative * backwardValue);
+            double backwardValue = backwardValues[i];
+            values[i] = derivative * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

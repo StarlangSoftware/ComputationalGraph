@@ -34,22 +34,22 @@ public class SGDMomentum extends Optimizer implements Serializable {
      */
     @Override
     protected void setGradients(ComputationalNode node) {
-        int backwardSize = node.getBackward().getData().size();
-        ArrayList<Double> newValues = new ArrayList<>(backwardSize);
+        int backwardSize = node.getBackward().getData().length;
+        double[] newValues = new double[backwardSize];
         for (int i = 0; i < backwardSize; i++) {
-            newValues.add((1 - momentum) * node.getBackward().getData().get(i));
+            newValues[i] = (1 - momentum) * node.getBackward().getData()[i];
         }
         if (velocityMap.containsKey(node)) {
-            for (int i = 0; i < newValues.size(); i++) {
-                newValues.set(i, newValues.get(i) + (velocityMap.get(node)[i] * momentum));
+            for (int i = 0; i < backwardSize; i++) {
+                newValues[i] = newValues[i] + (velocityMap.get(node)[i] * momentum);
             }
         }
         double[] velocity = new double[backwardSize];
-        for (int i = 0; i < backwardSize; i++) {
-            velocity[i] = newValues.get(i);
-        }
+        System.arraycopy(newValues, 0, velocity, 0, backwardSize);
         velocityMap.put(node, velocity);
-        newValues.replaceAll(value -> value * getLearningRate());
+        for (int i = 0; i < backwardSize; i++) {
+            newValues[i] *= getLearningRate();
+        }
         node.setBackward(new Tensor(newValues, node.getBackward().getShape()));
     }
 }

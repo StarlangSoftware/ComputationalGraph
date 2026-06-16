@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -24,11 +23,12 @@ public class DivideByDimensionSize implements Function, Serializable {
         if (dimension == -1) {
             return new FunctionResults(value);
         }
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
+        double[] tensorValues = value.getData();
+        double[] values = new double[tensorValues.length];
         int size = value.getShape()[dimension];
-        for (double val : tensorValues) {
-            values.add((1.0 / size) * (val));
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
+            values[i] = (1.0 / size) * (val);
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -46,12 +46,13 @@ public class DivideByDimensionSize implements Function, Serializable {
         if (dimension == -1) {
             return backward;
         }
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[backwardValues.length];
         int size = value.getShape()[dimension];
-        for (Double backwardValue : backwardValues) {
+        for (int i = 0; i < backwardValues.length; i++) {
+            double backwardValue = backwardValues[i];
             double derivative = (1.0 / size);
-            values.add(derivative * backwardValue);
+            values[i] = derivative * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

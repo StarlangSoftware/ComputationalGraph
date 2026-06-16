@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -24,13 +23,14 @@ public class ELU implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
             if (oldValue < 0) {
-                values.add(a * (Math.exp(oldValue) - 1));
+                values[i] = a * (Math.exp(oldValue) - 1);
             } else {
-                values.add(oldValue);
+                values[i] = oldValue;
             }
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
@@ -44,16 +44,16 @@ public class ELU implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < oldValues.size(); i++) {
-            Double oldValue = oldValues.get(i);
-            Double backwardValue = backwardValues.get(i);
+        double[] oldValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
+            double backwardValue = backwardValues[i];
             if (oldValue < 0) {
-                values.add((oldValue + a) * backwardValue);
+                values[i] = (oldValue + a) * backwardValue;
             } else {
-                values.add(backwardValue);
+                values[i] = backwardValue;
             }
         }
         return new Tensor(values, value.getShape());

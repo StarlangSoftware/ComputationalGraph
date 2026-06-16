@@ -279,11 +279,12 @@ public abstract class ComputationalGraph implements Serializable {
                         shape[i] = blockSize;
                     }
                 }
-                ArrayList<Double> childValues = (ArrayList<Double>) backward.getData(), newValues = new ArrayList<>();
+                double[] childValues = backward.getData();
+                ArrayList<Double> newValues = new ArrayList<>();
                 int i = index * dimensions;
-                while (i < childValues.size()) {
+                while (i < childValues.length) {
                     for (int k = 0; k < dimensions; k++) {
-                        newValues.add(childValues.get(i + k));
+                        newValues.add(childValues[i + k]);
                     }
                     i += child.parentsSize() * dimensions;
                 }
@@ -320,10 +321,8 @@ public abstract class ComputationalGraph implements Serializable {
         LinkedList<ComputationalNode> sortedNodes = topologicalSort();
         if (sortedNodes.isEmpty()) return;
         ComputationalNode outputNode = sortedNodes.remove(0);
-        ArrayList<Double> backward = new ArrayList<>();
-        for (int i = 0; i < outputNode.getValue().getData().size(); i++) {
-            backward.add(1.0);
-        }
+        double[] backward = new double[outputNode.getValue().getData().length];
+        Arrays.fill(backward, 1.0);
         outputNode.setBackward(new Tensor(backward, outputNode.getValue().getShape()));
         while (!sortedNodes.isEmpty()) {
             ComputationalNode node = sortedNodes.remove(0);
@@ -352,9 +351,9 @@ public abstract class ComputationalGraph implements Serializable {
     private void getBiased(ComputationalNode tensor) {
         int lastDimensionSize = tensor.getValue().getShape()[tensor.getValue().getShape().length - 1];
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getValue().getData();
-        for (int i = 0; i < oldValues.size(); i++) {
-            values.add(oldValues.get(i));
+        double[] oldValues = tensor.getValue().getData();
+        for (int i = 0; i < oldValues.length; i++) {
+            values.add(oldValues[i]);
             if ((i + 1) % lastDimensionSize == 0) {
                 values.add(1.0);
             }

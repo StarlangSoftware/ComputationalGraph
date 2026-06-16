@@ -14,20 +14,20 @@ public class Softmax implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor tensor) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) tensor.getData();
+        double[] oldValues = tensor.getData();
+        double[] values = new double[oldValues.length];
         int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
         double sum = 0.0;
         ArrayList<Double> sumList = new ArrayList<>();
-        for (int i = 0; i < oldValues.size(); i++) {
-            sum += Math.exp(oldValues.get(i));
+        for (int i = 0; i < oldValues.length; i++) {
+            sum += Math.exp(oldValues[i]);
             if ((i + 1) % lastDimensionSize == 0) {
                 sumList.add(sum);
                 sum = 0.0;
             }
         }
-        for (int i = 0; i < oldValues.size(); i++) {
-            values.add(Math.exp(oldValues.get(i)) / sumList.get(i / lastDimensionSize));
+        for (int i = 0; i < oldValues.length; i++) {
+            values[i] = Math.exp(oldValues[i]) / sumList.get(i / lastDimensionSize);
         }
         return new FunctionResults(new Tensor(values, tensor.getShape()));
     }
@@ -42,15 +42,15 @@ public class Softmax implements Function, Serializable {
     public Tensor derivative(Tensor tensor, Tensor backward) {
         int lastDimensionSize = tensor.getShape()[tensor.getShape().length - 1];
         ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValuesTensor = (ArrayList<Double>) tensor.getData();
-        ArrayList<Double> oldValuesBackward = (ArrayList<Double>) backward.getData();
+        double[] oldValuesTensor = tensor.getData();
+        double[] oldValuesBackward = backward.getData();
         double total = 0.0;
-        for (int i = 0; i < oldValuesTensor.size(); i++) {
-            total += oldValuesTensor.get(i) * oldValuesBackward.get(i);
+        for (int i = 0; i < oldValuesTensor.length; i++) {
+            total += oldValuesTensor[i] * oldValuesBackward[i];
             if ((i + 1) % lastDimensionSize == 0) {
                 int startIndex = i / lastDimensionSize;
                 for (int j = 0; j < lastDimensionSize; j++) {
-                    values.add(oldValuesBackward.get(startIndex * lastDimensionSize + j) - total);
+                    values.add(oldValuesBackward[startIndex * lastDimensionSize + j] - total);
                 }
                 total = 0.0;
             }

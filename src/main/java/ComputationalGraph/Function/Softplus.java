@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -15,10 +14,11 @@ public class Softplus implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        for (double val : tensorValues) {
-            values.add(Math.log(1.0 + Math.exp(val)));
+        double[] tensorValues = value.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
+            values[i] = Math.log(1.0 + Math.exp(val));
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -31,13 +31,13 @@ public class Softplus implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < tensorValues.size(); i++) {
-            double val = tensorValues.get(i);
-            double backwardValue = backwardValues.get(i);
-            values.add((1 - Math.exp(-val)) * backwardValue);
+        double[] tensorValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
+            double backwardValue = backwardValues[i];
+            values[i] = (1 - Math.exp(-val)) * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

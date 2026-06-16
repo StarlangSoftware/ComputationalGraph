@@ -1,7 +1,6 @@
 package ComputationalGraph.Initialization;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Random;
 import Math.Tensor;
 
@@ -30,9 +29,9 @@ public class UniformXavierInitialization implements Initialization, Serializable
         for (int j : shape) {
             total *= j;
         }
-        ArrayList<Double> data = new ArrayList<>();
+        double[] data = new double[total];
         for (int i = 0; i < total; i++) {
-            data.add((2 * random.nextDouble() - 1) * Math.sqrt(6.0 / (row + column)));
+            data[i] = (2 * random.nextDouble() - 1) * Math.sqrt(6.0 / (row + column));
         }
         return new Tensor(data, shape);
     }

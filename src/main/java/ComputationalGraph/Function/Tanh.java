@@ -3,7 +3,6 @@ package ComputationalGraph.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class Tanh implements Function, Serializable {
 
@@ -14,10 +13,11 @@ public class Tanh implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
-            values.add(Math.tanh(oldValue));
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
+            values[i] = Math.tanh(oldValue);
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -30,13 +30,13 @@ public class Tanh implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < oldValues.size(); i++) {
-            Double oldValue = oldValues.get(i);
-            Double backwardValue = backwardValues.get(i);
-            values.add((1 - oldValue * oldValue) * backwardValue);
+        double[] oldValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
+            double backwardValue = backwardValues[i];
+            values[i] = (1 - oldValue * oldValue) * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

@@ -1,7 +1,6 @@
 package ComputationalGraph.Optimizer;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import ComputationalGraph.Clipping.GradientClipping;
 import ComputationalGraph.Node.ComputationalNode;
@@ -24,10 +23,10 @@ public class StochasticGradientDescent extends Optimizer implements Serializable
      */
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> backward = (ArrayList<Double>) node.getBackward().getData();
-        for (Double aDouble : backward) {
-            values.add(aDouble * getLearningRate());
+        double[] backward = node.getBackward().getData();
+        double[] values = new double[backward.length];
+        for (int i = 0; i < backward.length; i++) {
+            values[i] = backward[i] * getLearningRate();
         }
         node.setBackward(new Tensor(values, node.getBackward().getShape()));
     }

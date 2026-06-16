@@ -1,7 +1,7 @@
 package ComputationalGraph.Initialization;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Random;
 import Math.Tensor;
 
 public class RandomInitialization implements Initialization, Serializable {
@@ -20,9 +20,9 @@ public class RandomInitialization implements Initialization, Serializable {
         for (int j : shape) {
             total *= j;
         }
-        ArrayList<Double> data = new ArrayList<>();
+        double[] data = new double[total];
         for (int i = 0; i < total; i++) {
-            data.add(-0.01 + (0.02 * random.nextDouble()));
+            data[i] = -0.01 + (0.02 * random.nextDouble());
         }
         return new Tensor(data, shape);
     }

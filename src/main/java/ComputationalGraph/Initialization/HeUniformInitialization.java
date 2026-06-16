@@ -1,7 +1,6 @@
 package ComputationalGraph.Initialization;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Random;
 import Math.Tensor;
 
@@ -26,9 +25,9 @@ public class HeUniformInitialization implements Initialization, Serializable {
         for (int j : shape) {
             total *= j;
         }
-        ArrayList<Double> data = new ArrayList<>();
+        double[] data = new double[total];
         for (int i = 0; i < total; i++) {
-            data.add(((Math.sqrt(6.0 / column) + Math.sqrt(6.0 / row)) * random.nextDouble()) - Math.sqrt(6.0 / row));
+            data[i] = ((Math.sqrt(6.0 / column) + Math.sqrt(6.0 / row)) * random.nextDouble()) - Math.sqrt(6.0 / row);
         }
         return new Tensor(data, shape);
     }

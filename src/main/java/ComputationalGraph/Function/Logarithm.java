@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -14,13 +13,14 @@ public class Logarithm implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
             if (oldValue <= 0) {
                 throw new IllegalArgumentException("Logarithm function input must be strictly positive. Found: " + oldValue);
             }
-            values.add(Math.log(oldValue));
+            values[i] = Math.log(oldValue);
         }
         return new FunctionResults(new Tensor(values, value.getShape()), new Tensor(oldValues, value.getShape()));
     }
@@ -33,14 +33,14 @@ public class Logarithm implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> tensorValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < tensorValues.size(); i++) {
-            double val = tensorValues.get(i);
+        double[] tensorValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[tensorValues.length];
+        for (int i = 0; i < tensorValues.length; i++) {
+            double val = tensorValues[i];
             double derivative = 1.0 / val;
-            double backwardValue = backwardValues.get(i);
-            values.add(derivative * backwardValue);
+            double backwardValue = backwardValues[i];
+            values[i] = derivative * backwardValue;
         }
         return new Tensor(values, value.getShape());
     }

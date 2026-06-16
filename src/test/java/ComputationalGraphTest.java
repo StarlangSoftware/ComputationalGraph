@@ -102,7 +102,12 @@ public class ComputationalGraphTest {
 
             @Override
             protected ArrayList<Double> getOutputValue(Tensor outputValue) {
-                return (ArrayList<Double>) outputValue.getData();
+                ArrayList<Double> values = new ArrayList<>();
+                double[] output = outputValue.getData();
+                for (double val : output) {
+                    values.add(val);
+                }
+                return values;
             }
         };
         graph.train(null);

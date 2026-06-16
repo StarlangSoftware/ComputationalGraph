@@ -6,7 +6,6 @@ import ComputationalGraph.Scheduler.Scheduler;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class AdamW extends Adam implements Serializable {
 
@@ -28,10 +27,10 @@ public class AdamW extends Adam implements Serializable {
      */
     @Override
     protected void setGradients(ComputationalNode node) {
-        ArrayList<Double> gradients = calculate(node);
-        ArrayList<Double> values = (ArrayList<Double>) node.getValue().getData();
-        for (int i = 0; i < gradients.size(); i++) {
-            gradients.set(i, gradients.get(i) + (getLearningRate() * weightDecay * values.get(i)));
+        double[] gradients = calculate(node);
+        double[] values = node.getValue().getData();
+        for (int i = 0; i < gradients.length; i++) {
+            gradients[i] = gradients[i] + (getLearningRate() * weightDecay * values[i]);
         }
         node.setBackward(new Tensor(gradients, node.getBackward().getShape()));
     }

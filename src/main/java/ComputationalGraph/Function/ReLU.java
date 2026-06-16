@@ -3,7 +3,6 @@ package ComputationalGraph.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class ReLU implements Function, Serializable {
 
@@ -14,10 +13,11 @@ public class ReLU implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
-            values.add(Math.max(oldValue, 0));
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
+            values[i] = Math.max(oldValue, 0);
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -30,16 +30,16 @@ public class ReLU implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (int i = 0; i < oldValues.size(); i++) {
-            Double oldValue = oldValues.get(i);
-            Double backwardValue = backwardValues.get(i);
+        double[] oldValues = value.getData();
+        double[] backwardValues = backward.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
+            double backwardValue = backwardValues[i];
             if (oldValue > 0) {
-                values.add(backwardValue);
+                values[i] = backwardValue;
             } else {
-                values.add(0.0);
+                values[i] = 0.0;
             }
         }
         return new Tensor(values, value.getShape());

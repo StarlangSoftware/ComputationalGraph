@@ -52,34 +52,36 @@ public class Adam extends SGDMomentum implements Serializable {
      *
      * @param node The node whose gradients are to be set.
      */
-    protected ArrayList<Double> calculate(ComputationalNode node) {
-        int backwardSize = node.getBackward().getData().size();
-        ArrayList<Double> newValuesMomentum = new ArrayList<>(backwardSize);
-        ArrayList<Double> newValuesVelocity = new ArrayList<>(backwardSize);
+    protected double[] calculate(ComputationalNode node) {
+        int backwardSize = node.getBackward().getData().length;
+        double[] newValuesMomentum = new double[backwardSize];
+        double[] newValuesVelocity = new double[backwardSize];
         for (int i = 0; i < backwardSize; i++) {
-            double backwardValue = node.getBackward().getData().get(i);
-            newValuesMomentum.add((1 - momentum) * backwardValue);
-            newValuesVelocity.add((1 - beta2) * (backwardValue * backwardValue));
+            double backwardValue = node.getBackward().getData()[i];
+            newValuesMomentum[i] = (1 - momentum) * backwardValue;
+            newValuesVelocity[i] = (1 - beta2) * (backwardValue * backwardValue);
         }
         if (momentumMap.containsKey(node)) {
-            for (int i = 0; i < newValuesVelocity.size(); i++) {
-                newValuesVelocity.set(i, newValuesVelocity.get(i) + beta2 * velocityMap.get(node)[i]);
-                newValuesMomentum.set(i, newValuesMomentum.get(i) + momentum * momentumMap.get(node)[i]);
+            for (int i = 0; i < newValuesVelocity.length; i++) {
+                newValuesVelocity[i] = newValuesVelocity[i] + beta2 * velocityMap.get(node)[i];
+                newValuesMomentum[i] = newValuesMomentum[i] + momentum * momentumMap.get(node)[i];
             }
         }
         double[] momentumValues = new double[backwardSize];
         double[] velocityValues = new double[backwardSize];
         for (int i = 0; i < backwardSize; i++) {
-            momentumValues[i] = newValuesMomentum.get(i);
-            velocityValues[i] = newValuesVelocity.get(i);
+            momentumValues[i] = newValuesMomentum[i];
+            velocityValues[i] = newValuesVelocity[i];
         }
         momentumMap.put(node, momentumValues);
         velocityMap.put(node, velocityValues);
-        newValuesMomentum.replaceAll(value -> value / (1 - this.currentBeta1));
-        newValuesVelocity.replaceAll(value -> value / (1 - this.currentBeta2));
-        ArrayList<Double> newValues = new ArrayList<>(newValuesMomentum.size());
-        for (int i = 0; i < newValuesMomentum.size(); i++) {
-            newValues.add((newValuesMomentum.get(i) / (Math.sqrt(newValuesVelocity.get(i)) + epsilon)) * getLearningRate());
+        for (int i = 0; i < backwardSize; i++) {
+            newValuesMomentum[i] /= (1 - this.currentBeta1);
+            newValuesVelocity[i] /= (1 - this.currentBeta2);
+        }
+        double[] newValues = new double[newValuesMomentum.length];
+        for (int i = 0; i < newValuesMomentum.length; i++) {
+            newValues[i] = (newValuesMomentum[i] / (Math.sqrt(newValuesVelocity[i]) + epsilon)) * getLearningRate();
         }
         return newValues;
     }

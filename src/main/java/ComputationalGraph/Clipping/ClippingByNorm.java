@@ -1,7 +1,6 @@
 package ComputationalGraph.Clipping;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.Tensor;
 
@@ -20,7 +19,7 @@ public class ClippingByNorm extends GradientClipping implements Serializable {
      */
     @Override
     public Tensor clip(Tensor backward) {
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
+        double[] backwardValues = backward.getData();
         double norm = 0.0;
         for (Double backwardValue : backwardValues) {
             norm += Math.pow(backwardValue, 2);
@@ -28,9 +27,9 @@ public class ClippingByNorm extends GradientClipping implements Serializable {
         norm = Math.sqrt(norm);
         double factor = getFactor();
         if (norm > factor) {
-            ArrayList<Double> gradient = new ArrayList<>(backwardValues.size());
-            for (Double backwardValue : backwardValues) {
-                gradient.add((backwardValue / norm) * factor);
+            double[] gradient = new double[backwardValues.length];
+            for (int i = 0; i < backwardValues.length; i++) {
+                gradient[i] = (backwardValues[i] / norm) * factor;
             }
             return new Tensor(gradient, backward.getShape());
         }

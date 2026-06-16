@@ -1,7 +1,6 @@
 package ComputationalGraph.Function;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import Math.*;
 
@@ -14,10 +13,10 @@ public class Negation implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
-            values.add(-oldValue);
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            values[i] = -oldValues[i];
         }
         return new FunctionResults(new Tensor(values, value.getShape()));
     }
@@ -30,10 +29,10 @@ public class Negation implements Function, Serializable {
      */
     @Override
     public Tensor derivative(Tensor value, Tensor backward) {
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> backwardValues = (ArrayList<Double>) backward.getData();
-        for (Double backwardValue : backwardValues) {
-            values.add(-backwardValue);
+        double[] backwardValues = backward.getData();
+        double[] values = new double[backwardValues.length];
+        for (int i = 0; i < backwardValues.length; i++) {
+            values[i] = -backwardValues[i];
         }
         return new Tensor(values, value.getShape());
     }

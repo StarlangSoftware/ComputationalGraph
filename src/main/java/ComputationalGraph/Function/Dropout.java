@@ -3,7 +3,6 @@ package ComputationalGraph.Function;
 import Math.Tensor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Random;
 
 public class Dropout implements Function, Serializable {
@@ -23,18 +22,19 @@ public class Dropout implements Function, Serializable {
      */
     @Override
     public FunctionResults calculate(Tensor value) {
-        ArrayList<Double> mask = new ArrayList<>();
         double multiplier = 1.0 / (1 - p);
-        ArrayList<Double> values = new ArrayList<>();
-        ArrayList<Double> oldValues = (ArrayList<Double>) value.getData();
-        for (Double oldValue : oldValues) {
+        double[] oldValues = value.getData();
+        double[] values = new double[oldValues.length];
+        double[] mask = new double[oldValues.length];
+        for (int i = 0; i < oldValues.length; i++) {
+            double oldValue = oldValues[i];
             double r = random.nextDouble();
             if (r > p) {
-                mask.add(multiplier);
-                values.add(oldValue * multiplier);
+                mask[i] = multiplier;
+                values[i] = oldValue * multiplier;
             } else {
-                mask.add(0.0);
-                values.add(0.0);
+                mask[i] = 0.0;
+                values[i] = 0.0;
             }
         }
         return new FunctionResults(new Tensor(values, value.getShape()), new Tensor(mask, value.getShape()));

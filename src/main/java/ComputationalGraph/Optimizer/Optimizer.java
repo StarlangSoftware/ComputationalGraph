@@ -72,19 +72,15 @@ public abstract class Optimizer implements Serializable {
                     v *= node.getValue().getShape()[i];
                     b *= node.getBackward().getShape()[i];
                 }
-                ArrayList<Double> backwardValues = (ArrayList<Double>) node.getBackward().getData();
-                double[] values = new double[node.getValue().getData().size()];
-                for (int i = 0; i < backwardValues.size(); i++) {
+                double[] backwardValues = node.getBackward().getData();
+                double[] values = new double[node.getValue().getData().length];
+                for (int i = 0; i < backwardValues.length; i++) {
                     for (int j = i; j < i + b; j++) {
-                        values[((j - i) % v) + v * (j / b)] += backwardValues.get(j);
+                        values[((j - i) % v) + v * (j / b)] += backwardValues[j];
                     }
                     i += b - 1;
                 }
-                ArrayList<Double> list = new ArrayList<>();
-                for (double d : values) {
-                    list.add(d);
-                }
-                node.setBackward(new Tensor(list, node.getValue().getShape()));
+                node.setBackward(new Tensor(values, node.getValue().getShape()));
             }
             if (this.gradientClipping != null) {
                 node.setBackward(this.gradientClipping.clip(node.getBackward()));
