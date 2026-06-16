@@ -14,7 +14,7 @@ public abstract class GradientClipping implements Serializable {
         this.factor = factor;
     }
 
-    public double getFactor() {
+    protected double getFactor() {
         return factor;
     }
 
