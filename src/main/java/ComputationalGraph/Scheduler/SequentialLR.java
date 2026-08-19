@@ -5,7 +5,6 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
     private final Scheduler[] schedulers;
     private final int[] milestones;
     private int curIndex;
-    private double lastLearningRate;
 
     public SequentialLR(double initialLearningRate, Scheduler[] schedulers, int[] milestones) {
         super(initialLearningRate);
@@ -15,7 +14,7 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
         this.schedulers = schedulers;
         this.milestones = milestones;
         this.curIndex = 0;
-        schedulers[curIndex].setInitialLearningRate(initialLearningRate);
+        schedulers[curIndex].learningRate = initialLearningRate;
     }
 
     /**
@@ -24,17 +23,16 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
      * At each epoch, the method determines whether to use the current scheduler or transition to the next one.
      * Transitions occur when the epoch count surpasses the milestone associated with the current scheduler.
      * The updated learning rate is computed by invoking the `updateLearningRate` method of the current scheduler.
-     * @return The updated learning rate computed by the active scheduler.
      */
     @Override
     protected double call() {
         if (curIndex == milestones.length || getEpoch() <= milestones[curIndex]) {
-            lastLearningRate = schedulers[curIndex].updateLearningRate();
-            return lastLearningRate;
+            schedulers[curIndex].updateLearningRate();
+            return schedulers[curIndex].getLearningRate();
         }
         curIndex++;
-        schedulers[curIndex].setInitialLearningRate(lastLearningRate);
-        lastLearningRate = schedulers[curIndex].updateLearningRate();
-        return lastLearningRate;
+        schedulers[curIndex].learningRate = schedulers[curIndex - 1].learningRate;
+        schedulers[curIndex].updateLearningRate();
+        return schedulers[curIndex].getLearningRate();
     }
 }

@@ -10,18 +10,15 @@ import Math.Tensor;
 
 public abstract class Optimizer implements Serializable {
 
-    private double learningRate;
     private final Scheduler scheduler;
     private final GradientClipping gradientClipping;
 
     public Optimizer(Scheduler scheduler, GradientClipping gradientClipping) {
-        this.learningRate = scheduler.getInitialLearningRate();
         this.scheduler = scheduler;
         this.gradientClipping = gradientClipping;
     }
 
     public Optimizer(Scheduler scheduler) {
-        this.learningRate = scheduler.getInitialLearningRate();
         this.scheduler = scheduler;
         this.gradientClipping = null;
     }
@@ -29,8 +26,8 @@ public abstract class Optimizer implements Serializable {
     /**
      * Updates the learning rate of the optimizer.
      */
-    public void setLearningRate() {
-        this.learningRate = this.scheduler.updateLearningRate();
+    public void updateLearningRate() {
+        this.scheduler.updateLearningRate();
     }
 
     /**
@@ -116,6 +113,6 @@ public abstract class Optimizer implements Serializable {
     }
 
     protected double getLearningRate() {
-        return this.learningRate;
+        return this.scheduler.getLearningRate();
     }
 }
