@@ -68,7 +68,7 @@ public class NeuralNet extends ComputationalGraph implements Serializable {
                 this.forwardCalculation();
                 this.backpropagation();
             }
-            parameters.getOptimizer().updateLearningRate();
+            parameters.getOptimizer().incrementEpoch();
         }
     }
 

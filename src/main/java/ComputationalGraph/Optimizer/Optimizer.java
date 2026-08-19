@@ -12,22 +12,25 @@ public abstract class Optimizer implements Serializable {
 
     private final Scheduler scheduler;
     private final GradientClipping gradientClipping;
+    private int epoch;
 
     public Optimizer(Scheduler scheduler, GradientClipping gradientClipping) {
         this.scheduler = scheduler;
         this.gradientClipping = gradientClipping;
+        this.epoch = 0;
     }
 
     public Optimizer(Scheduler scheduler) {
         this.scheduler = scheduler;
         this.gradientClipping = null;
+        this.epoch = 0;
     }
 
     /**
-     * Updates the learning rate of the optimizer.
+     * Updates the epoch of the optimizer.
      */
-    public void updateLearningRate() {
-        this.scheduler.updateLearningRate();
+    public void incrementEpoch() {
+        this.epoch++;
     }
 
     /**
@@ -113,6 +116,6 @@ public abstract class Optimizer implements Serializable {
     }
 
     protected double getLearningRate() {
-        return this.scheduler.getLearningRate();
+        return this.scheduler.call(this.epoch);
     }
 }

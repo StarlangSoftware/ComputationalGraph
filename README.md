@@ -77,7 +77,7 @@ Use below line to generate jar file:
         <dependency>
             <groupId>io.github.starlangsoftware</groupId>
             <artifactId>ComputationalGraph</artifactId>
-            <version>1.0.20</version>
+            <version>1.0.21</version>
         </dependency>
 
 For Contibutors

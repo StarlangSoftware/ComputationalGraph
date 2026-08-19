@@ -20,9 +20,14 @@ public class ExponentialLR extends Scheduler implements Serializable {
      * Computes the updated learning rate based on an exponential decay schedule.
      * The learning rate decreases exponentially over epochs, where the rate
      * of decay is determined by the `etaDecrease` factor.
+     * @param epoch current epoch of the optimizer.
      */
     @Override
-    protected double call() {
-        return this.learningRate * etaDecrease;
+    public double call(int epoch) {
+        double initialLearningRate = this.getInitialLearningRate();
+        if (initialLearningRate == Double.MIN_VALUE) {
+            throw new IllegalArgumentException("Learning rate must be initialized first.");
+        }
+        return initialLearningRate * Math.pow(etaDecrease, epoch);
     }
 }
