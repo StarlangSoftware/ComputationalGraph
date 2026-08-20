@@ -12,8 +12,8 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
         }
         this.schedulers = schedulers;
         this.milestones = milestones;
-        if (milestones[0] < 0) {
-            throw new IllegalArgumentException("Milestones must be positive.");
+        if (schedulers.length != 1 && milestones[0] < 1) {
+            throw new IllegalArgumentException("First milestone must be bigger than 0.");
         }
         for (int i = 0; i < milestones.length - 1; i++) {
             if (milestones[i + 1] < 0) {
@@ -24,6 +24,15 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
             }
         }
         schedulers[0].setInitialLearningRate(initialLearningRate);
+        for (int i = 1; i < schedulers.length; i++) {
+            int previousLength;
+            if (i == 1) {
+                previousLength = milestones[0];
+            } else {
+                previousLength = milestones[i - 1] - milestones[i - 2];
+            }
+            schedulers[i].setInitialLearningRate(schedulers[i - 1].call(previousLength - 1));
+        }
     }
 
     private int[] helper(int epoch, int min, int max) {
@@ -64,13 +73,6 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
             indexes = getIndexes(epoch);
         } else {
             indexes = new int[]{0, epoch};
-        }
-        if (indexes[0] > 0 && indexes[1] == 0) {
-            if (indexes[0] > 1) {
-                schedulers[indexes[0]].setInitialLearningRate(schedulers[indexes[0] - 1].call(epoch - milestones[indexes[0] - 2] - 1));
-            } else {
-                schedulers[indexes[0]].setInitialLearningRate(schedulers[indexes[0] - 1].call(epoch - 1));
-            }
         }
         return schedulers[indexes[0]].call(indexes[1]);
     }

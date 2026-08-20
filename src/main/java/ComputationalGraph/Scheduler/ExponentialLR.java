@@ -25,9 +25,6 @@ public class ExponentialLR extends Scheduler implements Serializable {
     @Override
     public double call(int epoch) {
         double initialLearningRate = this.getInitialLearningRate();
-        if (initialLearningRate == Double.MIN_VALUE) {
-            throw new IllegalArgumentException("Learning rate must be initialized first.");
-        }
         return initialLearningRate * Math.pow(etaDecrease, epoch);
     }
 }

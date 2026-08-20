@@ -14,7 +14,9 @@ public class CosineAnnealingLR extends Scheduler implements Serializable {
     }
 
     public CosineAnnealingLR(double etaMin, double tMax) {
-        this(Double.MIN_VALUE, etaMin, tMax);
+        super();
+        this.etaMin = etaMin;
+        this.tMax = tMax;
     }
 
     /**
@@ -27,9 +29,6 @@ public class CosineAnnealingLR extends Scheduler implements Serializable {
     @Override
     public double call(int epoch) {
         double initialLearningRate = this.getInitialLearningRate();
-        if (initialLearningRate == Double.MIN_VALUE) {
-            throw new IllegalArgumentException("Learning rate must be initialized first.");
-        }
         double progress = (double) epoch / this.tMax;
         if (progress > 1.0) {
             progress = 1.0;
