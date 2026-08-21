@@ -31,7 +31,7 @@ public class SequentialLR extends Scheduler implements java.io.Serializable {
             } else {
                 previousLength = milestones[i - 1] - milestones[i - 2];
             }
-            schedulers[i].setInitialLearningRate(schedulers[i - 1].call(previousLength - 1));
+            schedulers[i].setInitialLearningRate(schedulers[i - 1].call(previousLength));
         }
     }
 
